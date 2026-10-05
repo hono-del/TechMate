@@ -1,0 +1,477 @@
+export type Language = 'en' | 'ja';
+
+const translations = {
+  // ─── App ────────────────────────────────────────────────────────────────────
+  'app.name':    { en: 'e-library Next', ja: 'e-library Next' },
+  'app.tagline': { en: 'Service Knowledge Platform', ja: 'サービスナレッジプラットフォーム' },
+
+  // ─── Navigation ─────────────────────────────────────────────────────────────
+  'nav.home':          { en: 'Home',           ja: 'ホーム' },
+  'nav.back':          { en: 'Back',           ja: '前へ' },
+  'nav.prev-step':     { en: 'Prev step',      ja: '前のステップ' },
+
+  // ─── Workflow Steps ─────────────────────────────────────────────────────────
+  'step.reception':    { en: 'Reception',      ja: '受付' },
+  'step.diagnosis':    { en: 'Diagnosis',       ja: '診断' },
+  'step.work-planning':{ en: 'Work Planning',   ja: '作業計画' },
+  'step.planning':     { en: 'Planning',        ja: '計画' },
+  'step.repair':       { en: 'Repair',          ja: '修理' },
+  'step.check-verify': { en: 'Check & Verify', ja: '確認・検証' },
+  'step.verify':       { en: 'Verify',          ja: '検証' },
+  'step.handover':     { en: 'Handover',        ja: '引渡し' },
+
+  // ─── Header ─────────────────────────────────────────────────────────────────
+  'header.more':       { en: 'More',               ja: '詳細' },
+  'header.less':       { en: 'Less',               ja: '閉じる' },
+  'header.vin':        { en: 'VIN',                ja: 'VIN' },
+  'header.concern':    { en: 'Customer Concern',   ja: '顧客申告内容' },
+  'header.dtc':        { en: 'DTC',                ja: 'DTC' },
+  'header.technician': { en: 'Technician',         ja: 'テクニシャン' },
+  'header.ro':         { en: 'RO',                 ja: 'RO番号' },
+  'header.vehicle':    { en: 'Vehicle Details',    ja: '車両情報' },
+  'header.symptoms':   { en: 'Reported Symptoms',  ja: '申告症状' },
+  'header.schedule':   { en: 'Schedule',           ja: 'スケジュール' },
+  'header.team':       { en: 'Team',               ja: '担当者' },
+  'header.received':   { en: 'Received',           ja: '受付日' },
+  'header.est-done':   { en: 'Est. done',          ja: '完了予定' },
+  'header.sa':         { en: 'SA',                 ja: 'SA' },
+
+  // ─── Home / Job List ────────────────────────────────────────────────────────
+  'home.title':        { en: "Today's Jobs",    ja: '本日の作業一覧' },
+  'home.in-progress':  { en: 'In Progress',     ja: '作業中' },
+  'home.scheduled':    { en: 'Scheduled',       ja: '予定' },
+  'home.current-step': { en: 'Current Step',    ja: '現在工程' },
+  'home.demo-mockup':  { en: 'Demo Mockup',     ja: 'デモ用モックアップ' },
+  'home.demo-note': {
+    en: 'This is a concept mockup for e-library Next. Select the Corolla Cross job (RO-2026-10-0042) to walk through the full 6-step service workflow. All data is fictional and for demonstration only.',
+    ja: 'これは e-library Next のコンセプトモックアップです。Corolla Cross のジョブ（RO-2026-10-0042）を選択して、6工程のワークフロー全体をご確認ください。すべてのデータは架空のデモ用です。',
+  },
+
+  // ─── Vehicle fields ──────────────────────────────────────────────────────────
+  'vehicle.model':   { en: 'Model',    ja: '車種' },
+  'vehicle.grade':   { en: 'Grade',    ja: 'グレード' },
+  'vehicle.vin':     { en: 'VIN',      ja: 'VIN' },
+  'vehicle.mileage': { en: 'Mileage',  ja: '走行距離' },
+  'vehicle.engine':  { en: 'Engine',   ja: 'エンジン' },
+  'vehicle.color':   { en: 'Color',    ja: 'カラー' },
+
+  // ─── DTC Acquisition ────────────────────────────────────────────────────────
+  'dtc.acquire.title':       { en: 'Ready for DTC Scan', ja: 'DTC取得の準備完了' },
+  'dtc.acquire.subtitle':    { en: 'Connect the diagnostic tool and press the button below to retrieve fault codes.', ja: '診断ツールを接続し、ボタンを押してDTCを取得してください。' },
+  'dtc.acquire.btn':         { en: 'Get DTC', ja: 'DTCを取得' },
+  'dtc.acquire.scanning':    { en: 'Scanning…', ja: 'スキャン中…' },
+  'dtc.acquired.label':      { en: 'DTC Retrieved', ja: 'DTC取得完了' },
+  'dtc.reception-note.title':{ en: 'Insights from Customer Interview', ja: '顧客ヒアリングからの示唆' },
+  'dtc.reception-note.none': { en: 'No answers recorded at reception.', ja: '受付での回答は記録されていません。' },
+
+  // ─── Reception ──────────────────────────────────────────────────────────────
+  'reception.concern.edit':      { en: 'Edit concern', ja: '申告内容を編集' },
+  'reception.concern.save':      { en: 'Save', ja: '保存' },
+  'reception.concern.cancel':    { en: 'Cancel', ja: 'キャンセル' },
+  'reception.concern.placeholder': {
+    en: 'Describe what the customer reported (in their own words)…',
+    ja: '顧客が申告した内容を入力してください（顧客の言葉で）…',
+  },
+  'reception.symptoms.add':      { en: '+ Add symptom', ja: '+ 症状を追加' },
+  'reception.symptoms.placeholder': { en: 'e.g. Light appears on highway', ja: '例: 高速道路走行中に点灯' },
+
+  'reception.confirm-q.title':   { en: 'Suggested Questions for Customer', ja: '顧客に確認すべき事項' },
+  'reception.confirm-q.subtitle':{ en: 'Based on vehicle info, DTC, and service history — ask before diagnosis', ja: '車両情報・DTC・整備履歴を踏まえた確認事項 — 診断前に顧客へ確認してください' },
+  'reception.confirm-q.checked': { en: 'confirmed', ja: '確認済み' },
+  'reception.confirm-q.badge':   { en: '✦ AI Suggested', ja: '✦ AI提案' },
+  'reception.confirm-q.progress':{ en: 'questions confirmed', ja: '件確認済み' },
+
+  'reception.banner.title': { en: 'Reception — Prepare the job context before diagnosis', ja: '受付 — 診断前にジョブコンテキストを準備する' },
+  'reception.banner.body':  {
+    en: 'Retrieve vehicle, customer, and job information first. Confirmation questions and recommended information will appear based on that context.',
+    ja: 'まず車両・顧客・ジョブ情報を取得します。その内容を踏まえて、確認事項と推奨情報が表示されます。',
+  },
+  'reception.acquire.title':    { en: 'Vehicle arrived — ready to start reception', ja: '車両入庫 — 受付開始の準備完了' },
+  'reception.acquire.subtitle': {
+    en: 'Vehicle information and customer concern are already linked in the dealer system. Press to load the full job context.',
+    ja: '車両情報と顧客申告はすでに販売店システムに紐づいています。ボタンを押してジョブコンテキストを読み込んでください。',
+  },
+  'reception.acquire.btn':      { en: 'Start Reception', ja: '受付を開始' },
+  'reception.acquire.loading':  { en: 'Loading job context…', ja: 'ジョブコンテキストを読み込んでいます…' },
+  'reception.acquire.wait-guidance': {
+    en: 'Preparing recommended first checks and relevant information…',
+    ja: '推奨確認事項と関連情報を準備しています…',
+  },
+  'reception.context-ready':    { en: 'Job context prepared automatically', ja: 'ジョブコンテキストを自動で準備しました' },
+  'reception.context-connected':{ en: 'No blank start — Vehicle · Customer concern · Service history · Known issues are all connected', ja: 'ゼロからの探索不要 — 車両・顧客申告・整備履歴・既知事例がすでに紐づいています' },
+  'reception.known-issues':     { en: 'Known Issues & Campaigns', ja: '既知事例・キャンペーン' },
+  'reception.known-issues.subtitle': { en: 'Manufacturer-reported issues applicable to this vehicle and DTC', ja: 'この車両・DTCに該当するメーカー既知事例' },
+  'reception.history.relevant': { en: 'Related to current issue', ja: '今回の案件に関連する可能性あり' },
+  'reception.first-checks':     { en: 'Recommended First Checks', ja: '診断前の推奨確認事項' },
+  'reception.first-checks.subtitle': { en: 'Generated from vehicle context, service history, and known issues — confirm before diagnosis', ja: '車両情報・整備履歴・既知事例をもとに生成 — 診断前に顧客へ確認してください' },
+  'reception.cta.context-carry': { en: 'This context will carry directly into diagnosis', ja: 'このコンテキストをそのまま診断に引き継ぎます' },
+  'reception.vehicle-summary':  { en: 'Vehicle & Job Summary',        ja: '車両・ジョブ情報' },
+  'reception.service-history':  { en: 'Service History',               ja: '整備履歴' },
+  'reception.recommended-info': { en: 'Recommended for This Job',      ja: 'このジョブへの推奨情報' },
+  'reception.auto-matched':     { en: 'Auto-matched',                  ja: '自動マッチ' },
+  'reception.need-more':        { en: 'Need more info?',               ja: '情報をもっと探す' },
+  'reception.cta-label':        { en: 'Reception complete — review vehicle context and known issues before proceeding.', ja: '受付完了 — 診断に進む前に車両コンテキストと既知の問題を確認してください。' },
+  'reception.cta':              { en: 'Start Diagnosis',               ja: '診断を開始' },
+
+  // ─── Diagnosis ──────────────────────────────────────────────────────────────
+  'diagnosis.banner.title': { en: 'Diagnosis — Narrow down the possible cause', ja: '診断 — 可能性のある原因を絞り込む' },
+  'diagnosis.banner.body':  {
+    en: 'Based on DTC P0420 and vehicle context, the most likely causes are ranked below. Use the recommended procedure and similar cases to confirm.',
+    ja: 'DTC P0420と車両コンテキストに基づき、可能性の高い原因が下に表示されています。推奨手順と類似事例で原因を確認してください。',
+  },
+  'diagnosis.dtc-overview':    { en: 'DTC Overview',                     ja: 'DTC 概要' },
+  'diagnosis.possible-causes': { en: 'Possible Causes',                  ja: '推定原因' },
+  'diagnosis.confirm-cause':   { en: 'Confirm as Root Cause',            ja: '根本原因として確定' },
+  'diagnosis.confirmed':       { en: 'Confirmed as Root Cause',          ja: '根本原因として確定済み' },
+  'diagnosis.ai-ranking-note': {
+    en: 'AI-assisted ranking based on DTC + vehicle + field cases. Verify with official diagnostic procedure.',
+    ja: 'DTC・車両・現場事例に基づくAI支援ランキングです。公式診断手順で必ず確認してください。',
+  },
+  'diagnosis.flow-title':       { en: 'Recommended Diagnostic Flow', ja: '推奨診断フロー' },
+  'diagnosis.flow.select-step': { en: 'Select a step to view details', ja: 'ステップを選択して詳細を表示' },
+  'diagnosis.flow.select-hint': { en: 'Click any step to see what to check, relevant manuals, and similar cases.', ja: '各ステップをクリックすると確認項目・関連マニュアル・類似事例が表示されます。' },
+  'diagnosis.flow.what-check':  { en: 'What to Check', ja: '確認項目' },
+  'diagnosis.flow.manual':      { en: 'Relevant Manual', ja: '関連マニュアル' },
+  'diagnosis.flow.cases':       { en: 'Similar Cases', ja: '類似事例' },
+  'diagnosis.flow.precautions': { en: 'Precautions', ja: '注意事項' },
+  'case.drawer.symptoms':       { en: 'Symptoms', ja: '症状' },
+  'case.drawer.cause':          { en: 'Cause', ja: '原因' },
+  'case.drawer.action':         { en: 'Action', ja: '処置' },
+  'case.drawer.result':         { en: 'Result', ja: '結果' },
+  'case.drawer.why':            { en: 'Why recommended?', ja: 'なぜ推薦されたか？' },
+  'case.resolved-by':           { en: 'Resolved by', ja: '解決方法' },
+  'case.best-answer':           { en: 'Best Answer available', ja: 'ベストアンサーあり' },
+  'case.view-detail':           { en: 'View details', ja: '詳細を見る' },
+  'diagnosis.cta-ready':   { en: 'Root cause confirmed — ready to create work plan', ja: '根本原因確定 — 作業計画を作成できます' },
+  'diagnosis.cta-pending': { en: 'Confirm the root cause to proceed to Work Planning', ja: '作業計画へ進むために根本原因を確定してください' },
+  'diagnosis.cta':         { en: 'Confirm Cause & Create Work Plan', ja: '原因確定・作業計画作成' },
+
+  // DTC details
+  'dtc.system':          { en: 'System',             ja: 'システム' },
+  'dtc.monitor':         { en: 'Monitor',            ja: 'モニター' },
+  'dtc.status':          { en: 'Status',             ja: 'ステータス' },
+  'dtc.p0420.title':     { en: 'Catalyst System Efficiency Below Threshold — Bank 1', ja: '触媒システム効率低下 — バンク1' },
+  'dtc.p0420.system':    { en: 'Engine Emission Control', ja: 'エンジン排気制御' },
+  'dtc.p0420.monitor':   { en: 'Catalyst Monitor (OBD-II)', ja: '触媒モニター（OBD-II）' },
+  'dtc.p0420.status':    { en: 'Confirmed / Current', ja: '確認済み / 現在' },
+
+  // ─── Work Planning ───────────────────────────────────────────────────────────
+  'planning.banner.title': { en: 'Work Planning — Build an actionable work plan', ja: '作業計画 — 実施可能な作業計画を作成する' },
+  'planning.banner.cause': { en: 'Confirmed cause', ja: '確定原因' },
+  'planning.banner.body':  { en: 'Review the procedure, parts, and tools before starting repair.', ja: '修理を開始する前に手順・部品・工具を確認してください。' },
+  'planning.create-btn':    { en: 'Create Work Plan', ja: '作業計画を作成' },
+  'planning.creating':      { en: 'Generating work plan…', ja: '作業計画を生成中…' },
+  'planning.diagnosis-result': { en: 'Confirmed Diagnosis', ja: '確定診断' },
+  'planning.ready-check':   { en: 'Ready Check', ja: '準備確認' },
+  'planning.needs-attention':{ en: 'item(s) need attention before starting', ja: '件の確認が必要です' },
+  'planning.all-ready':     { en: 'Ready to Start Repair', ja: '修理開始の準備完了' },
+  'planning.watch-out':     { en: 'Things to Watch Out For', ja: '注意すべき事項' },
+  'planning.watch-why':     { en: 'Why recommended?', ja: 'なぜ推薦されたか？' },
+  'planning.work-plan':     { en: 'Recommended Work Plan', ja: '推奨作業計画' },
+  'planning.step-detail.procedure':  { en: 'Procedure',     ja: '手順' },
+  'planning.step-detail.tool':       { en: 'Required Tool', ja: '必要工具' },
+  'planning.step-detail.part':       { en: 'Related Part',  ja: '関連部品' },
+  'planning.step-detail.spec':       { en: 'Specification', ja: '規定値' },
+  'planning.step-detail.precaution': { en: 'Precaution',    ja: '注意事項' },
+  'planning.est-time':        { en: 'Estimated time',                    ja: '作業目安時間' },
+  'planning.precautions':     { en: 'Key Precautions',                   ja: '重要注意事項' },
+  'planning.procedure':       { en: 'Recommended Work Procedure',        ja: '推奨作業手順' },
+  'planning.torque-specs':    { en: 'Torque Specifications',             ja: 'トルク規定値' },
+  'planning.oem-official':    { en: 'OEM Official — Original source quoted', ja: 'OEM公式 — 原文引用' },
+  'planning.source':          { en: 'Source',                            ja: '出典' },
+  'planning.similar-cases':   { en: 'Similar Cases',                     ja: '類似事例' },
+  'planning.parts':           { en: 'Required Parts',                    ja: '必要部品' },
+  'planning.in-stock':        { en: 'In Stock',                          ja: '在庫あり' },
+  'planning.order-required':  { en: 'Order Required',                    ja: '発注が必要' },
+  'planning.qty':             { en: 'Qty',                               ja: '数量' },
+  'planning.tools':           { en: 'Required Tools',                    ja: '必要工具' },
+  'planning.cta-confirm-label':{ en: 'I have reviewed the procedure, parts, and precautions', ja: '手順・部品・注意事項を確認しました' },
+  'planning.cta':             { en: 'Start Repair',                      ja: '修理を開始' },
+
+  // Parts ordering flow
+  'planning.parts.out-of-stock':  { en: 'Out of Stock',          ja: '在庫切れ' },
+  'planning.parts.check-order':   { en: 'Check Price & Arrival',  ja: '金額・到着日を確認' },
+  'planning.parts.order-btn':     { en: 'Place Order',            ja: '発注する' },
+  'planning.parts.cancel':        { en: 'Cancel',                 ja: 'キャンセル' },
+  'planning.parts.unit-price':    { en: 'Unit Price',             ja: '単価' },
+  'planning.parts.qty':           { en: 'Qty',                    ja: '数量' },
+  'planning.parts.min-arrival':   { en: 'Earliest Arrival',       ja: '最短入荷日' },
+  'planning.parts.shipping':      { en: 'Shipping',               ja: '発送中' },
+  'planning.parts.arrives':       { en: 'Est. Arrival',           ja: '到着予定' },
+  'planning.parts.ordered-label': { en: 'Ordered',                ja: '発注済み' },
+  'planning.cta.waiting-parts':   {
+    en: 'Waiting for parts — Start Repair will be available once all parts arrive',
+    ja: '部品到着待ち — すべての部品が到着したら修理を開始できます',
+  },
+
+  // ─── Repair ──────────────────────────────────────────────────────────────────
+  'repair.banner.title':   { en: 'Repair', ja: '修理' },
+  'repair.banner.body':    { en: 'Follow the step-by-step procedure. Information updates as you progress through each step.', ja: 'ステップバイステップの手順に従ってください。各ステップの進行に合わせて情報が更新されます。' },
+  'repair.step-progress':  { en: 'Step Progress',                        ja: 'ステップ進捗' },
+  'repair.steps-done':     { en: 'steps completed',                      ja: 'ステップ完了' },
+  'repair.warning-label':  { en: 'Warning / Precaution',                 ja: '警告・注意事項' },
+  'repair.confirm-warning':{ en: 'I have read and understood the warnings — Proceed', ja: '警告を読み理解しました — 続行' },
+  'repair.warning-ack':    { en: 'Warnings acknowledged',                ja: '警告確認済み' },
+  'repair.step-label':     { en: 'Step',                                 ja: 'ステップ' },
+  'repair.of':             { en: 'of',                                   ja: '/' },
+  'repair.illustration':   { en: 'Illustration / Diagram — Step',       ja: 'イラスト・図 — ステップ' },
+  'repair.specs':          { en: 'Specifications',                       ja: '規定値・仕様' },
+  'repair.step-completed': { en: 'Step Completed',                      ja: 'ステップ完了済み' },
+  'repair.complete-step':  { en: 'Complete Step',                       ja: 'ステップを完了' },
+  'repair.cta-ready':      { en: 'All steps completed — ready for verification', ja: '全ステップ完了 — 確認・検証へ進めます' },
+  'repair.cta':            { en: 'Complete Repair',                      ja: '修理完了' },
+
+  // ─── Something is different ──────────────────────────────────────────────────
+  'unexpected.btn':               { en: 'Something is different',          ja: '想定外の状況' },
+  'unexpected.modal.title':       { en: 'Something is different',          ja: '想定外の状況' },
+  'unexpected.modal.subtitle':    { en: 'Document and resolve unexpected findings before continuing', ja: '想定外の発見を記録し、作業を続ける前に解決してください' },
+  'unexpected.placeholder':       { en: 'Describe what you observed… (e.g. Connector shows unexpected corrosion)', ja: '気づいたことを入力してください…（例：コネクタに予期しない腐食が見られる）' },
+  'unexpected.action.add-obs':    { en: 'Add Observation',                 ja: '観察を記録' },
+  'unexpected.action.search':     { en: 'Search Related Cases',            ja: '関連事例を検索' },
+  'unexpected.action.ask-ai':     { en: 'Ask AI',                          ja: 'AIに質問' },
+  'unexpected.action.field-note': { en: 'Add Field Note',                  ja: 'フィールドノートに追加' },
+  'unexpected.results.title':     { en: 'Related Cases Found',             ja: '関連事例が見つかりました' },
+  'unexpected.results.empty':     { en: 'No matching cases — try different keywords', ja: '一致する事例がありません — キーワードを変えてみてください' },
+  'unexpected.ai.thinking':       { en: 'Analyzing your observation…',     ja: '観察内容を分析中…' },
+  'unexpected.ai.title':          { en: 'AI Analysis',                     ja: 'AI分析結果' },
+  'unexpected.ai.disclaimer':     { en: 'AI-generated suggestion — verify with official documentation before proceeding', ja: 'AI生成の提案です — 続行前に公式ドキュメントで確認してください' },
+  'unexpected.saved':             { en: 'Observation saved',               ja: '観察を記録しました' },
+  'unexpected.saved.sub':         { en: 'Added to this job\'s field notes', ja: 'このジョブのフィールドノートに追加されました' },
+  'unexpected.tie-label':         { en: 'TIE',                             ja: 'TIE' },
+  'unexpected.qa-label':          { en: 'Q&A',                             ja: 'Q&A' },
+  'unexpected.best-answer':       { en: 'Best Answer',                     ja: 'ベストアンサー' },
+  'unexpected.input-hint':        { en: 'Enter an observation to search or ask AI', ja: '観察内容を入力して検索またはAIに質問してください' },
+
+  // ─── Check & Verify ──────────────────────────────────────────────────────────
+  'verify.banner.title': { en: 'Check & Verify — Confirm the repair is truly complete', ja: '確認・検証 — 修理が本当に完了したことを確認する' },
+  'verify.banner.body':  { en: 'Complete all required verification items before handover. All items marked Required must pass.', ja: '引渡し前にすべての必須確認項目を完了してください。「必須」とマークされた項目はすべて合格が必要です。' },
+  'verify.status.ready':            { en: 'Ready for Handover',          ja: '引渡し準備完了' },
+  'verify.status.additional-check': { en: 'Additional Check Required',  ja: '追加確認が必要' },
+  'verify.status.in-progress':      { en: 'In Progress',                ja: '確認中' },
+  'verify.passed':          { en: 'passed',             ja: '合格' },
+  'verify.failed':          { en: 'failed',             ja: '不合格' },
+  'verify.required-pending':{ en: 'required pending',  ja: '必須保留' },
+  'verify.items-verified':  { en: 'items verified',    ja: '項目確認済み' },
+  'verify.quick-actions':   { en: 'Quick Actions',     ja: 'クイックアクション' },
+  'verify.mark-all-passed': { en: 'Mark All as Passed', ja: 'すべて合格にする' },
+  'verify.reset-all':       { en: 'Reset All',         ja: 'すべてリセット' },
+  'verify.checklist-title': { en: 'Recommended Verification', ja: '推奨確認項目' },
+  'verify.checklist-subtitle': {
+    en: 'Auto-generated from this repair — only checks relevant to the work performed',
+    ja: '今回の修理内容から自動生成 — 実施した作業に必要な確認のみ表示',
+  },
+  'verify.required-label':  { en: 'Required',          ja: '必須' },
+  'verify.pass':            { en: 'Pass',              ja: '合格' },
+  'verify.fail':            { en: 'Fail',              ja: '不合格' },
+  'verify.na':              { en: 'N/A',               ja: 'N/A' },
+  'verify.cta-ready':       { en: 'All required items verified — ready for handover', ja: '全必須項目確認済み — 引渡し可能' },
+  'verify.cta-failed':      { en: 'item(s) failed — resolve before handover', ja: '項目が不合格 — 引渡し前に解決してください' },
+  'verify.cta-pending':     { en: 'required item(s) still pending', ja: '必須項目がまだ保留中です' },
+  'verify.cta':             { en: 'Proceed to Handover', ja: '引渡しへ進む' },
+
+  // verify extended
+  'verify.repair-summary':        { en: 'Performed Repair',              ja: '実施した修理' },
+  'verify.repair-completed-badge':{ en: 'Repair Steps Completed',        ja: '修理ステップ完了' },
+  'verify.repair-verified-badge': { en: 'Repair Verified',               ja: '修理検証完了' },
+  'verify.performed':             { en: 'Performed Repair',              ja: '修理内容' },
+  'verify.related-dtc':           { en: 'Related DTC',                   ja: '関連DTC' },
+  'verify.repair-status':         { en: 'Repair Status',                 ja: '修理ステータス' },
+  'verify.parts-replaced':        { en: 'Parts Replaced',                ja: '交換部品' },
+  'verify.progress':              { en: 'Verification Progress',         ja: '確認進捗' },
+  'verify.missed-checks':         { en: 'Common Missed Checks',          ja: 'よくある確認漏れ' },
+  'verify.missed-why':            { en: 'Why shown?',                    ja: 'なぜ表示されているか？' },
+  'verify.missed-source':         { en: 'Based on similar TIE cases',    ja: '類似TIE事例に基づく' },
+  'verify.fail.action-title':     { en: 'Recommended Action',            ja: '推奨アクション' },
+  'verify.fail.return-diag':      { en: 'Return to Diagnosis / Repair',  ja: '診断・修理に戻る' },
+  'verify.fail.review-info':      { en: 'Review Related Information',    ja: '関連情報を確認する' },
+  'verify.fail.detected':         { en: 'detected again',                ja: 'が再検出されました' },
+  'verify.ready.title':           { en: 'Repair Verified',               ja: '修理検証完了' },
+  'verify.ready.sub':             { en: 'All checks passed — vehicle is ready for handover', ja: '全確認合格 — 車両の引渡し準備完了' },
+  'verify.distinction.repair':    { en: '④ Repair Completed — work was performed', ja: '④ 修理完了 — 作業を終えた' },
+  'verify.distinction.verify':    { en: '⑤ Repair Verified — correct completion confirmed', ja: '⑤ 修理検証 — 正しく終わったことを確認した' },
+
+  // ─── Handover ────────────────────────────────────────────────────────────────
+  'handover.banner.title':   { en: 'Handover — Customer Explanation Note', ja: '引渡し — 顧客説明書' },
+  'handover.banner.body':    { en: 'Review and edit the generated customer explanation. Confirm before handing over the vehicle.', ja: '生成された顧客説明文を確認・編集してください。車両返却前に内容を確定してください。' },
+  'handover.banner.ai-note': { en: 'AI-generated draft — review and edit as needed before confirming. Not an official repair document.', ja: 'AI生成のドラフトです。確定前に内容を確認・編集してください。公式修理書類ではありません。' },
+  'handover.output-title':   { en: 'Output',                  ja: '出力' },
+  'handover.summary-title':  { en: 'Repair Summary',          ja: '修理サマリー' },
+  'handover.note-title':     { en: 'Customer Explanation Note', ja: '顧客説明書' },
+  'handover.ai-draft':       { en: 'AI Draft',                ja: 'AI 下書き' },
+  'handover.field.concern':  { en: 'Customer Concern',        ja: '顧客申告内容' },
+  'handover.field.cause':    { en: 'Cause',                   ja: '原因' },
+  'handover.field.what-we-did':  { en: 'What We Did',         ja: '実施内容' },
+  'handover.field.result':   { en: 'Result',                  ja: '結果' },
+  'handover.field.should-know':  { en: 'What You Should Know', ja: 'お客様へのご案内' },
+  'handover.field.next-rec': { en: 'Next Recommendation',     ja: '今後のご推奨事項' },
+  'handover.output.print':   { en: 'Print',                   ja: '印刷' },
+  'handover.output.print.sub':{ en: 'Print explanation note', ja: '説明書を印刷' },
+  'handover.output.pdf':     { en: 'Save PDF',                ja: 'PDF保存' },
+  'handover.output.pdf.sub': { en: 'Save as PDF',             ja: 'PDFとして保存' },
+  'handover.output.email':   { en: 'Email Customer',          ja: '顧客へメール送信' },
+  'handover.output.email.sub':{ en: 'Send to customer email', ja: 'お客様へメール送信' },
+  'handover.output.app':     { en: 'Send to App',             ja: 'アプリへ送信' },
+  'handover.output.app.sub': { en: 'Customer mobile app',     ja: 'お客様アプリへ送信' },
+  'handover.summary.repair': { en: 'Repair',                  ja: '修理内容' },
+  'handover.summary.result': { en: 'Result',                  ja: '結果' },
+  'handover.summary.resolved':{ en: 'Resolved',               ja: '解決済み' },
+  'handover.cta-label':      { en: 'Review the explanation note, then complete the job to return the vehicle.', ja: '説明書を確認後、ジョブを完了して車両を返却してください。' },
+  'handover.cta':            { en: 'Complete Job',            ja: 'ジョブ完了' },
+  'handover.completed.title':  { en: 'Job Complete',          ja: 'ジョブ完了' },
+  'handover.completed.knowledge-note': {
+    en: "This job's outcome has been logged. Field notes and repair results may be reviewed to improve recommendations for future technicians.",
+    ja: 'このジョブの結果が記録されました。フィールドノートと修理結果はレビューを経て、今後のテクニシャンへの推奨改善に活用される場合があります。',
+  },
+  'handover.completed.return': { en: 'Return to Job List', ja: 'ジョブ一覧に戻る' },
+
+  // ─── Handover — Information Chain ────────────────────────────────────────────
+  'handover.chain.title':        { en: 'All information is connected across every step', ja: 'すべての工程の情報がひとつにつながっています' },
+  'handover.chain.concern':      { en: 'Customer Concern',  ja: '顧客申告' },
+  'handover.chain.diagnosis':    { en: 'Diagnosis',         ja: '診断' },
+  'handover.chain.repair':       { en: 'Repair',            ja: '修理' },
+  'handover.chain.verification': { en: 'Verification',      ja: '検証結果' },
+
+  // ─── Handover — Generate ─────────────────────────────────────────────────────
+  'handover.generate.btn':          { en: 'Generate Explanation Note',   ja: '顧客説明書を生成' },
+  'handover.generate.subtitle':     { en: 'AI transforms technical findings into customer-friendly language', ja: 'AIが技術情報を顧客向け表現に変換します' },
+  'handover.generate.loading':      { en: 'Generating…',                 ja: '生成中…' },
+  'handover.generate.before-title': { en: 'Technical Information',       ja: '技術情報（変換前）' },
+  'handover.generate.before-note':  { en: 'This is how it looks before transformation', ja: '変換前の技術情報です' },
+
+  // ─── Handover — Explanation Level ─────────────────────────────────────────────
+  'handover.level.label':         { en: 'Explanation Level',        ja: '説明レベル' },
+  'handover.level.simple':        { en: 'Simple',                   ja: 'シンプル' },
+  'handover.level.standard':      { en: 'Standard',                 ja: 'スタンダード' },
+  'handover.level.detailed':      { en: 'Detailed',                 ja: '詳細' },
+  'handover.level.recommended':   { en: 'AI Recommended',           ja: 'AI推奨' },
+  'handover.level.simple.desc':   { en: '2-sentence summary',       ja: '2文でシンプルに' },
+  'handover.level.standard.desc': { en: '6-field full explanation', ja: '6項目の完全説明' },
+  'handover.level.detailed.desc': { en: 'Technical detail included', ja: '技術詳細付き' },
+  'handover.recommend.reason':    { en: 'Recommended for this customer', ja: 'このお客様への推奨' },
+  'handover.recommend.basis':     { en: 'First visit · No prior service history', ja: '初回来店 · 整備履歴なし' },
+  'handover.quick-switch':        { en: 'Quick switch:',            ja: '即切替：' },
+
+  // ─── Handover — SA Guide ─────────────────────────────────────────────────────
+  'handover.sa-guide.title':    { en: 'Suggested Explanation',      ja: '説明の手順' },
+  'handover.sa-guide.subtitle': { en: 'Guide for Service Advisor',  ja: 'サービスアドバイザー向けガイド' },
+  'handover.sa.1': { en: 'Explain the original issue',          ja: '最初の問題を説明する' },
+  'handover.sa.2': { en: 'Explain the cause in simple terms',   ja: '原因をわかりやすく説明する' },
+  'handover.sa.3': { en: 'Explain what was repaired',           ja: '実施した修理を説明する' },
+  'handover.sa.4': { en: 'Confirm the repair result',           ja: '修理結果を確認する' },
+  'handover.sa.5': { en: 'Share any future recommendation',     ja: '今後の推奨事項を伝える' },
+
+  // ─── Handover — Next Actions ─────────────────────────────────────────────────
+  'handover.next-action.title': { en: 'Recommended Next Action',             ja: '推奨する次のアクション' },
+  'handover.next-action.1':     { en: 'Continue regular maintenance schedule', ja: '定期メンテナンスを継続してください' },
+  'handover.next-action.2':     { en: 'Next inspection: 30,000 km or 12 months', ja: '次回点検：30,000 km または 12 ヶ月以内' },
+  'handover.next-action.3':     { en: 'Monitor Check Engine Light',          ja: 'チェックエンジンランプを確認してください' },
+  'handover.next-action.4':     { en: 'Contact dealer if symptom returns',   ja: '症状が再発した場合はご来店ください' },
+
+  // ─── Buttons / CTAs ──────────────────────────────────────────────────────────
+  'btn.view-full':       { en: 'View full content',      ja: '全文を見る' },
+  'btn.prev-step':       { en: 'Previous Step',          ja: '前のステップ' },
+  'btn.next-step':       { en: 'Next Step',              ja: '次のステップ' },
+  'btn.save':            { en: 'Save',                   ja: '保存' },
+  'btn.cancel':          { en: 'Cancel',                 ja: 'キャンセル' },
+  'btn.close':           { en: 'Close',                  ja: '閉じる' },
+  'btn.search':          { en: 'Search',                 ja: '検索' },
+  'btn.add-field-note':  { en: 'Add Field Note',         ja: 'フィールドノートを追加' },
+  'btn.save-field-note': { en: 'Save Field Note',        ja: 'フィールドノートを保存' },
+
+  // ─── AI Search ───────────────────────────────────────────────────────────────
+  'ai.search-fallback':  { en: 'AI Search — Fallback',   ja: 'AI 検索 — フォールバック' },
+  'ai.context-applied':  { en: '(Current context auto-applied)', ja: '（現在のコンテキストを自動適用）' },
+  'ai.placeholder':      { en: 'Ask a question or search... (Context: Corolla Cross 2022, P0420)', ja: '質問または検索... （コンテキスト：Corolla Cross 2022, P0420）' },
+  'ai.disclaimer':       {
+    en: 'AI-generated answers — always verify against OEM official sources. Not a substitute for official procedures.',
+    ja: 'AI生成の回答です — OEM公式ソースで必ず確認してください。公式手順の代替ではありません。',
+  },
+
+  // ─── Info Class badges ───────────────────────────────────────────────────────
+  'badge.oem-official':    { en: '✓ OEM Official',    ja: '✓ OEM公式' },
+  'badge.field-knowledge': { en: '◈ Field Knowledge', ja: '◈ 現場知見' },
+  'badge.ai-generated':    { en: '✦ AI Generated',    ja: '✦ AI生成' },
+
+  // ─── Type badges ─────────────────────────────────────────────────────────────
+  'type.manual':    { en: 'Manual',      ja: 'サービスマニュアル' },
+  'type.tie':       { en: 'TIE',         ja: 'TIE（技術情報）' },
+  'type.qa':        { en: 'Q&A',         ja: 'Q&A' },
+  'type.warning':   { en: '⚠ Warning',  ja: '⚠ 警告' },
+  'type.checklist': { en: 'Checklist',   ja: 'チェックリスト' },
+  'type.parts':     { en: 'Parts',       ja: '部品' },
+  'type.tools':     { en: 'Tools',       ja: '工具' },
+  'type.case':      { en: 'Field Case',  ja: '現場事例' },
+
+  // ─── Relevance ───────────────────────────────────────────────────────────────
+  'relevance.high':   { en: '●●● High Match',   ja: '●●● 高マッチ' },
+  'relevance.medium': { en: '●●○ Medium Match', ja: '●●○ 中マッチ' },
+  'relevance.low':    { en: '●○○ Low Match',    ja: '●○○ 低マッチ' },
+
+  // ─── Status badges ───────────────────────────────────────────────────────────
+  'status.in-progress':      { en: 'In Progress',               ja: '作業中' },
+  'status.scheduled':        { en: 'Scheduled',                 ja: '予定' },
+  'status.completed':        { en: 'Completed',                 ja: '完了' },
+  'status.on-hold':          { en: 'On Hold',                   ja: '保留中' },
+  'status.ready':            { en: '✓ Ready for Handover',     ja: '✓ 引渡し準備完了' },
+  'status.additional-check': { en: '! Additional Check',        ja: '! 追加確認が必要' },
+
+  // ─── Probability ─────────────────────────────────────────────────────────────
+  'prob.high':   { en: 'High probability',   ja: '高い可能性' },
+  'prob.medium': { en: 'Medium probability', ja: '中程度の可能性' },
+  'prob.low':    { en: 'Low probability',    ja: '低い可能性' },
+
+  // ─── Feedback ────────────────────────────────────────────────────────────────
+  'feedback.helpful':           { en: 'Helpful?',                       ja: '役に立ちましたか？' },
+  'feedback.yes':               { en: 'Helpful',                        ja: '役立った' },
+  'feedback.no':                { en: 'Not helpful',                    ja: '役立たなかった' },
+  'feedback.thanks':            { en: '👍 Thanks!',                     ja: '👍 ありがとうございます！' },
+  'feedback.why':               { en: 'Why not helpful?',               ja: 'なぜ役に立ちませんでしたか？' },
+  'feedback.unrelated':         { en: 'Not relevant to this job',       ja: 'このジョブに関係のない情報' },
+  'feedback.hard-to-understand':{ en: 'Hard to understand',             ja: '理解しにくい' },
+  'feedback.incorrect':         { en: 'Information appears incorrect',  ja: '情報が正確でないようです' },
+  'feedback.insufficient':      { en: 'Information insufficient',       ja: '情報が不足している' },
+  'feedback.other':             { en: 'Other',                          ja: 'その他' },
+  'feedback.noted':             { en: 'Noted',                          ja: '記録しました' },
+
+  // ─── Info Drawer ─────────────────────────────────────────────────────────────
+  'drawer.summary-title': { en: 'Summary',       ja: '概要' },
+  'drawer.why':           { en: 'Why recommended', ja: '推奨理由' },
+  'drawer.official-note': { en: 'This is OEM official documentation. Values shown are from official source.', ja: 'これはOEM公式ドキュメントです。表示されている値は公式ソースからの引用です。' },
+  'drawer.field-note':    { en: 'Field knowledge — not OEM approved. Use as reference only.', ja: '現場知見です — OEM未承認。参考情報としてのみ使用してください。' },
+  'drawer.ai-note':       { en: 'AI-generated content — always verify against official sources.', ja: 'AI生成コンテンツです — 必ず公式ソースで確認してください。' },
+
+  // ─── Field Note Modal ────────────────────────────────────────────────────────
+  'fieldnote.title':    { en: 'Add Field Note',    ja: 'フィールドノートを追加' },
+  'fieldnote.subtitle': { en: 'Saved as field knowledge (pending approval)', ja: '現場知見として保存（承認待ち）' },
+  'fieldnote.type.observation':     { en: 'Observation',   ja: '観察内容' },
+  'fieldnote.type.observation.desc':{ en: 'Something I noticed during the job', ja: '作業中に気づいたこと' },
+  'fieldnote.type.problem':         { en: 'Problem',        ja: '問題' },
+  'fieldnote.type.problem.desc':    { en: 'An issue encountered', ja: '発生した問題' },
+  'fieldnote.type.solution':        { en: 'Solution',       ja: '解決策' },
+  'fieldnote.type.solution.desc':   { en: 'What resolved the issue', ja: '問題を解決した方法' },
+  'fieldnote.type.tip':             { en: 'Tip',            ja: 'ヒント' },
+  'fieldnote.type.tip.desc':        { en: 'A useful technique or shortcut', ja: '有用な手法やショートカット' },
+  'fieldnote.info': {
+    en: 'This note will be saved as Field Knowledge (pending review). It will appear in recommendations after approval.',
+    ja: 'このノートは現場知見（レビュー待ち）として保存されます。Technical Supportの承認後、推奨情報として表示されます。',
+  },
+  'fieldnote.saved.title': { en: 'Saved as Field Knowledge', ja: '現場知見として保存しました' },
+  'fieldnote.saved.body':  {
+    en: 'This note has been saved. It will be reviewed by Technical Support and may become an approved Field Note shared with other technicians.',
+    ja: 'ノートを保存しました。Technical Supportによるレビュー後、承認された現場知見として他のテクニシャンと共有される場合があります。',
+  },
+  'fieldnote.status': { en: 'Status: Pending review (Field Knowledge — not yet approved)', ja: 'ステータス：レビュー待ち（現場知見 — 未承認）' },
+
+  // ─── Misc ────────────────────────────────────────────────────────────────────
+  'why-recommended': { en: 'Why shown', ja: '提示理由' },
+} as const;
+
+export type TranslationKey = keyof typeof translations;
+
+export function t(key: TranslationKey, lang: Language): string {
+  const entry = translations[key];
+  if (!entry) return key;
+  return (entry as Record<string, string>)[lang] ?? (entry as Record<string, string>)['en'];
+}
+
+export { translations };
