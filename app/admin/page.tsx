@@ -27,6 +27,7 @@ import {
   type KnowledgeUsageItem,
   type FrictionCard,
 } from '@/data/admin/dashboard';
+import { useLanguage } from '@/context/LanguageContext';
 
 function KpiCard({ label, value, unit, icon: Icon, color }: {
   label: string;
@@ -93,6 +94,7 @@ function KnowledgeTypeLabel({ type }: { type: KnowledgeUsageItem['type'] }) {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const navigateToKnowledge = (issueId?: string) => {
     if (issueId) {
@@ -102,22 +104,30 @@ export default function AdminDashboard() {
     }
   };
 
+  const loopSteps = [
+    { label: t('admin.loop.field'),   sub: t('admin.loop.field-sub') },
+    { label: t('admin.loop.gap'),     sub: t('admin.loop.gap-sub') },
+    { label: t('admin.loop.improve'), sub: t('admin.loop.improve-sub') },
+    { label: t('admin.loop.rec'),     sub: t('admin.loop.rec-sub') },
+    { label: t('admin.loop.better'),  sub: t('admin.loop.better-sub') },
+  ];
+
   return (
     <div className="px-8 py-6 space-y-6 max-w-[1440px] mx-auto">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Service Intelligence Dashboard</h1>
-        <p className="text-sm text-slate-500 mt-1">See what is happening across service operations.</p>
+        <h1 className="text-2xl font-bold text-slate-900">{t('admin.dash.title')}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t('admin.dash.subtitle')}</p>
       </div>
 
       {/* ── KPI Summary ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-6 gap-4">
-        <KpiCard label="Active Jobs" value={KPI_SUMMARY.activeJobs} icon={Activity} color="bg-navy" />
-        <KpiCard label="Completed Jobs" value={KPI_SUMMARY.completedJobs} icon={CheckCircle2} color="bg-teal" />
-        <KpiCard label="Avg. Diagnosis Time" value={KPI_SUMMARY.avgDiagnosisTime} unit="min" icon={Clock} color="bg-brand-blue" />
-        <KpiCard label="First-Time Resolution" value={KPI_SUMMARY.firstTimeResolution} unit="%" icon={Target} color="bg-teal" />
-        <KpiCard label="Unresolved Jobs" value={KPI_SUMMARY.unresolvedJobs} icon={AlertTriangle} color="bg-orange-500" />
-        <KpiCard label="Recommendation Usage" value={KPI_SUMMARY.recommendationUsage} unit="%" icon={Zap} color="bg-violet-600" />
+        <KpiCard label={t('admin.kpi.active')}    value={KPI_SUMMARY.activeJobs}           icon={Activity}      color="bg-navy" />
+        <KpiCard label={t('admin.kpi.completed')} value={KPI_SUMMARY.completedJobs}         icon={CheckCircle2}  color="bg-teal" />
+        <KpiCard label={t('admin.kpi.diag-time')} value={KPI_SUMMARY.avgDiagnosisTime}      unit={t('admin.kpi.min')} icon={Clock} color="bg-brand-blue" />
+        <KpiCard label={t('admin.kpi.ftr')}       value={KPI_SUMMARY.firstTimeResolution}   unit="%" icon={Target}      color="bg-teal" />
+        <KpiCard label={t('admin.kpi.unresolved')}value={KPI_SUMMARY.unresolvedJobs}         icon={AlertTriangle} color="bg-orange-500" />
+        <KpiCard label={t('admin.kpi.rec-usage')} value={KPI_SUMMARY.recommendationUsage}   unit="%" icon={Zap}         color="bg-violet-600" />
       </div>
 
       {/* ── Knowledge Gap Alert ─────────────────────────────────────────────── */}
@@ -131,15 +141,15 @@ export default function AdminDashboard() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold text-orange-600 uppercase tracking-wide">Knowledge Gap Detected</span>
+            <span className="text-xs font-bold text-orange-600 uppercase tracking-wide">{t('admin.gap.label')}</span>
           </div>
           <p className="text-sm font-semibold text-slate-800">{KNOWLEDGE_GAP_ALERT.message}</p>
           <p className="text-xs text-slate-500 mt-1">
-            Most frequent search: &ldquo;{KNOWLEDGE_GAP_ALERT.searchTerm}&rdquo; — by {KNOWLEDGE_GAP_ALERT.searchCount} technicians
+            {t('admin.gap.search-prefix')} &ldquo;{KNOWLEDGE_GAP_ALERT.searchTerm}&rdquo; — {KNOWLEDGE_GAP_ALERT.searchCount} {t('admin.gap.by')}
           </p>
         </div>
         <div className="flex items-center gap-1.5 bg-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg group-hover:bg-orange-600 transition-colors flex-shrink-0">
-          Review Knowledge Gap
+          {t('admin.gap.review')}
           <ChevronRight className="w-3.5 h-3.5" />
         </div>
       </div>
@@ -151,8 +161,8 @@ export default function AdminDashboard() {
         <div className="col-span-7 bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Top Issues This Period</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Click an issue to review knowledge gaps</p>
+              <h2 className="text-sm font-bold text-slate-900">{t('admin.issues.title')}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{t('admin.issues.subtitle')}</p>
             </div>
           </div>
           <div className="divide-y divide-slate-50">
@@ -172,21 +182,21 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold text-sm text-slate-900">{issue.title}</span>
                       {issue.id === 'p0420' && (
-                        <span className="text-[10px] font-bold bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded">HIGH PRIORITY</span>
+                        <span className="text-[10px] font-bold bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded">{t('admin.issues.priority')}</span>
                       )}
                       <TrendIcon trend={issue.trend} />
                     </div>
                     <div className="flex items-center gap-4 text-xs text-slate-500">
-                      <span><b className="text-slate-700">{issue.caseCount}</b> cases</span>
-                      <span><b className="text-orange-600">{issue.additionalSearches}</b> extra searches</span>
-                      <span><b className="text-red-500">{issue.unresolvedCount}</b> unresolved</span>
-                      <span><Clock className="w-3 h-3 inline mr-0.5" />{issue.avgDiagnosisTime} min avg</span>
+                      <span><b className="text-slate-700">{issue.caseCount}</b> {t('admin.issues.cases')}</span>
+                      <span><b className="text-orange-600">{issue.additionalSearches}</b> {t('admin.issues.searches')}</span>
+                      <span><b className="text-red-500">{issue.unresolvedCount}</b> {t('admin.issues.unresolved')}</span>
+                      <span><Clock className="w-3 h-3 inline mr-0.5" />{issue.avgDiagnosisTime} {t('admin.kpi.min')}</span>
                     </div>
                   </div>
 
                   {/* Resolution rate */}
                   <div className="w-32">
-                    <div className="text-[10px] text-slate-400 mb-1 text-right">Resolution</div>
+                    <div className="text-[10px] text-slate-400 mb-1 text-right">{t('admin.issues.resolution')}</div>
                     <ResolutionBar rate={issue.resolutionRate} />
                   </div>
 
@@ -202,8 +212,8 @@ export default function AdminDashboard() {
           {/* Technician Friction */}
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-900">Where Technicians Are Struggling</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Issues with high search volume or unresolved rate</p>
+              <h2 className="text-sm font-bold text-slate-900">{t('admin.friction.title')}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{t('admin.friction.subtitle')}</p>
             </div>
             <div className="divide-y divide-slate-50">
               {TECHNICIAN_FRICTION.map((card: FrictionCard) => (
@@ -216,30 +226,30 @@ export default function AdminDashboard() {
                   <div className="font-semibold text-sm text-slate-800 mb-2">{card.issue}</div>
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                     <div className="text-xs text-slate-500">
-                      <span className="font-bold text-slate-700">{card.jobs}</span> jobs
+                      <span className="font-bold text-slate-700">{card.jobs}</span> {t('admin.friction.jobs')}
                     </div>
                     {card.additionalSearches != null && (
                       <div className="text-xs text-slate-500">
-                        <span className="font-bold text-orange-600">{card.additionalSearches}</span> extra searches
+                        <span className="font-bold text-orange-600">{card.additionalSearches}</span> {t('admin.issues.searches')}
                       </div>
                     )}
                     {card.qaViews != null && (
                       <div className="text-xs text-slate-500">
-                        <span className="font-bold text-violet-600">{card.qaViews}</span> Q&A views
+                        <span className="font-bold text-violet-600">{card.qaViews}</span> {t('admin.friction.qa')}
                       </div>
                     )}
                     <div className="text-xs text-slate-500">
-                      <span className="font-bold text-red-500">{card.unresolved}</span> unresolved
+                      <span className="font-bold text-red-500">{card.unresolved}</span> {t('admin.issues.unresolved')}
                     </div>
                     <div className="text-xs text-slate-500">
                       <Clock className="w-3 h-3 inline mr-0.5 text-slate-400" />
-                      <span className="font-bold text-slate-700">{card.avgDiagnosisTime}</span> min avg
+                      <span className="font-bold text-slate-700">{card.avgDiagnosisTime}</span> {t('admin.kpi.min')}
                     </div>
                   </div>
                   {card.id === 'p0420' && (
                     <div className="mt-2 text-xs text-orange-600 font-medium flex items-center gap-1">
                       <AlertTriangle className="w-3 h-3" />
-                      Technicians may not be finding enough information from current recommendations.
+                      {t('admin.friction.insight')}
                     </div>
                   )}
                 </div>
@@ -251,14 +261,14 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-bold text-slate-900">Most Used Knowledge</h2>
-                <p className="text-xs text-slate-500 mt-0.5">Based on technician opens &amp; helpful ratings</p>
+                <h2 className="text-sm font-bold text-slate-900">{t('admin.knowledge.title')}</h2>
+                <p className="text-xs text-slate-500 mt-0.5">{t('admin.knowledge.subtitle')}</p>
               </div>
               <button
                 onClick={() => router.push('/admin/recommendations')}
                 className="text-xs text-brand-blue font-medium flex items-center gap-0.5 hover:underline"
               >
-                See performance <ArrowUpRight className="w-3 h-3" />
+                {t('admin.knowledge.perf')} <ArrowUpRight className="w-3 h-3" />
               </button>
             </div>
             <div className="divide-y divide-slate-50">
@@ -270,7 +280,7 @@ export default function AdminDashboard() {
                     <div className="text-xs font-medium text-slate-800 truncate">{item.title}</div>
                     <div className="flex items-center gap-2 mt-0.5">
                       <KnowledgeTypeLabel type={item.type} />
-                      <span className="text-xs text-slate-400">{item.usageCount} uses</span>
+                      <span className="text-xs text-slate-400">{item.usageCount} {t('admin.knowledge.uses')}</span>
                     </div>
                   </div>
                   <div className="text-sm font-bold text-teal">{item.helpfulRate}%</div>
@@ -283,15 +293,9 @@ export default function AdminDashboard() {
 
       {/* Loop visualization */}
       <div className="bg-navy rounded-xl px-6 py-5">
-        <div className="text-white/50 text-xs uppercase tracking-widest mb-3 font-semibold">The Improvement Loop</div>
+        <div className="text-white/50 text-xs uppercase tracking-widest mb-3 font-semibold">{t('admin.loop.title')}</div>
         <div className="flex items-center gap-0">
-          {[
-            { label: 'Field Activity', sub: 'Jobs · Notes · Searches' },
-            { label: 'Knowledge Gap', sub: 'Detection · Prioritization' },
-            { label: 'Knowledge Improvement', sub: 'TIE · FAQ · Checklist' },
-            { label: 'Recommendation', sub: 'Context-aware suggestion' },
-            { label: 'Better Service', sub: 'Faster resolution' },
-          ].map((step, i) => (
+          {loopSteps.map((step, i) => (
             <div key={i} className="flex items-center flex-1">
               <div className="flex-1 text-center">
                 <div className="text-white text-xs font-bold">{step.label}</div>

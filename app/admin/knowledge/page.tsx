@@ -12,44 +12,43 @@ import {
   CheckCircle2,
   Clock,
   Zap,
-  Users,
   ArrowRight,
   Sparkles,
   Info,
 } from 'lucide-react';
 import { KNOWLEDGE_GAPS, type KnowledgeGap, type GapStatus } from '@/data/admin/knowledgeGaps';
+import { useLanguage } from '@/context/LanguageContext';
+import type { TranslationKey } from '@/lib/translations';
 
 type EvidenceTab = 'fieldNotes' | 'searchPatterns' | 'qa' | 'existing';
 
-const STATUS_LABELS: Record<GapStatus, string> = {
-  new: 'New',
-  'under-review': 'Under Review',
-  candidate: 'Candidate',
-  approved: 'Approved',
-  published: 'Published',
+const STATUS_KEYS: Record<GapStatus, TranslationKey> = {
+  new:            'admin.ki.status.new',
+  'under-review': 'admin.ki.status.review',
+  candidate:      'admin.ki.status.candidate',
+  approved:       'admin.ki.status.approved',
+  published:      'admin.ki.status.published',
 };
 
 const STATUS_COLORS: Record<GapStatus, string> = {
-  new: 'bg-red-100 text-red-700',
+  new:            'bg-red-100 text-red-700',
   'under-review': 'bg-orange-100 text-orange-700',
-  candidate: 'bg-violet-100 text-violet-700',
-  approved: 'bg-teal-light text-teal',
-  published: 'bg-green-100 text-green-700',
+  candidate:      'bg-violet-100 text-violet-700',
+  approved:       'bg-teal-light text-teal',
+  published:      'bg-green-100 text-green-700',
 };
 
-const PRIORITY_COLORS = {
-  high: 'bg-red-100 text-red-700',
+const PRIORITY_KEYS: Record<string, TranslationKey> = {
+  high:   'admin.ki.priority.high',
+  medium: 'admin.ki.priority.medium',
+  low:    'admin.ki.priority.low',
+};
+
+const PRIORITY_COLORS: Record<string, string> = {
+  high:   'bg-red-100 text-red-700',
   medium: 'bg-orange-100 text-orange-700',
-  low: 'bg-slate-100 text-slate-600',
+  low:    'bg-slate-100 text-slate-600',
 };
-
-function GapStatusChip({ status }: { status: GapStatus }) {
-  return (
-    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${STATUS_COLORS[status]}`}>
-      {STATUS_LABELS[status]}
-    </span>
-  );
-}
 
 function KnowledgeTypeIcon({ type }: { type: 'manual' | 'tie' | 'faq' }) {
   if (type === 'manual') return <FileText className="w-4 h-4 text-brand-blue" />;
@@ -60,6 +59,7 @@ function KnowledgeTypeIcon({ type }: { type: 'manual' | 'tie' | 'faq' }) {
 function KnowledgePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t } = useLanguage();
   const initialIssue = searchParams.get('issue') ?? KNOWLEDGE_GAPS[0].id.replace('gap-', '');
 
   const findGap = (issueId: string) =>
@@ -81,11 +81,11 @@ function KnowledgePageContent() {
     }, 3000);
   };
 
-  const TABS: { id: EvidenceTab; label: string; icon: React.ElementType }[] = [
-    { id: 'fieldNotes', label: 'Field Notes', icon: FileText },
-    { id: 'searchPatterns', label: 'Search Patterns', icon: Search },
-    { id: 'qa', label: 'Q&A', icon: MessageCircle },
-    { id: 'existing', label: 'Existing Knowledge', icon: BookOpen },
+  const TABS: { id: EvidenceTab; key: TranslationKey; icon: React.ElementType }[] = [
+    { id: 'fieldNotes',    key: 'admin.ki.tab.notes',  icon: FileText },
+    { id: 'searchPatterns',key: 'admin.ki.tab.search', icon: Search },
+    { id: 'qa',            key: 'admin.ki.tab.qa',     icon: MessageCircle },
+    { id: 'existing',      key: 'admin.ki.tab.existing',icon: BookOpen },
   ];
 
   return (
@@ -93,8 +93,8 @@ function KnowledgePageContent() {
       {/* Left: Knowledge Gap Queue */}
       <aside className="w-72 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 overflow-y-auto">
         <div className="px-4 py-4 border-b border-slate-100">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wide">Knowledge Gap Queue</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Issues requiring attention</p>
+          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wide">{t('admin.ki.queue')}</h2>
+          <p className="text-xs text-slate-400 mt-0.5">{t('admin.ki.queue-sub')}</p>
         </div>
         <div className="divide-y divide-slate-50">
           {KNOWLEDGE_GAPS.map((gap) => {
@@ -116,16 +116,18 @@ function KnowledgePageContent() {
                     {gap.issue}
                   </span>
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase ${PRIORITY_COLORS[gap.priority]}`}>
-                    {gap.priority}
+                    {t(PRIORITY_KEYS[gap.priority])}
                   </span>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-3 text-xs text-slate-500">
-                    <span><b className="text-slate-700">{gap.caseCount}</b> cases</span>
-                    <span><b className="text-orange-600">{gap.additionalSearches}</b> searches</span>
-                    <span><b className="text-red-500">{gap.unresolvedCount}</b> unresolved</span>
+                    <span><b className="text-slate-700">{gap.caseCount}</b> {t('admin.ki.sym.cases')}</span>
+                    <span><b className="text-orange-600">{gap.additionalSearches}</b> {t('admin.ki.sym.searches')}</span>
+                    <span><b className="text-red-500">{gap.unresolvedCount}</b> {t('admin.ki.sym.unresolved')}</span>
                   </div>
-                  <GapStatusChip status={status} />
+                  <span className={`inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${STATUS_COLORS[status]}`}>
+                    {t(STATUS_KEYS[status])}
+                  </span>
                 </div>
               </button>
             );
@@ -142,9 +144,11 @@ function KnowledgePageContent() {
               <div className="flex items-center gap-2 mb-1">
                 <h1 className="text-xl font-bold text-slate-900">{selectedGap.issue}</h1>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${PRIORITY_COLORS[selectedGap.priority]}`}>
-                  {selectedGap.priority} priority
+                  {t(PRIORITY_KEYS[selectedGap.priority])} {t('admin.ki.priority-label')}
                 </span>
-                <GapStatusChip status={effectiveStatus(selectedGap)} />
+                <span className={`inline-block text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${STATUS_COLORS[effectiveStatus(selectedGap)]}`}>
+                  {t(STATUS_KEYS[effectiveStatus(selectedGap)])}
+                </span>
               </div>
               <p className="text-sm text-slate-500">{selectedGap.symptom}</p>
             </div>
@@ -153,22 +157,22 @@ function KnowledgePageContent() {
           {/* Issue Summary Cards */}
           <div className="grid grid-cols-5 gap-3">
             {[
-              { label: 'Cases', value: selectedGap.caseCount, color: 'text-slate-900' },
-              { label: 'Unresolved', value: selectedGap.unresolvedCount, color: 'text-red-600' },
-              { label: 'Extra Searches', value: selectedGap.additionalSearches, color: 'text-orange-600' },
-              { label: 'Resolution Rate', value: `${selectedGap.resolutionRate}%`, color: 'text-slate-900' },
-              { label: 'Avg. Diagnosis', value: `${selectedGap.avgDiagnosisTime} min`, color: 'text-slate-900' },
+              { key: 'admin.ki.metrics.cases',      value: selectedGap.caseCount,          color: 'text-slate-900' },
+              { key: 'admin.ki.metrics.unresolved',  value: selectedGap.unresolvedCount,    color: 'text-red-600' },
+              { key: 'admin.ki.metrics.searches',    value: selectedGap.additionalSearches, color: 'text-orange-600' },
+              { key: 'admin.ki.metrics.resolution',  value: `${selectedGap.resolutionRate}%`, color: 'text-slate-900' },
+              { key: 'admin.ki.metrics.diag',        value: `${selectedGap.avgDiagnosisTime} ${t('admin.kpi.min')}`, color: 'text-slate-900' },
             ].map((m) => (
-              <div key={m.label} className="bg-white rounded-xl border border-slate-200 px-4 py-3 text-center">
+              <div key={m.key} className="bg-white rounded-xl border border-slate-200 px-4 py-3 text-center">
                 <div className={`text-xl font-bold ${m.color}`}>{m.value}</div>
-                <div className="text-xs text-slate-400 mt-0.5">{m.label}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{t(m.key as TranslationKey)}</div>
               </div>
             ))}
           </div>
 
           {/* Vehicle models */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 font-medium">Affected models:</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-slate-400 font-medium">{t('admin.ki.affected')}</span>
             {selectedGap.vehicleModels.map((m) => (
               <span key={m} className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-medium">{m}</span>
             ))}
@@ -180,19 +184,19 @@ function KnowledgePageContent() {
           {/* Evidence Tabs */}
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div className="border-b border-slate-100 flex">
-              {TABS.map((t) => (
+              {TABS.map((tabItem) => (
                 <button
-                  key={t.id}
+                  key={tabItem.id}
                   className={`flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors ${
-                    tab === t.id
+                    tab === tabItem.id
                       ? 'text-brand-blue border-b-2 border-brand-blue bg-blue-50/50'
                       : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                   }`}
-                  onClick={() => setTab(t.id)}
+                  onClick={() => setTab(tabItem.id)}
                 >
-                  <t.icon className="w-3.5 h-3.5" />
-                  {t.label}
-                  {t.id === 'fieldNotes' && (
+                  <tabItem.icon className="w-3.5 h-3.5" />
+                  {t(tabItem.key)}
+                  {tabItem.id === 'fieldNotes' && (
                     <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full font-bold">
                       {selectedGap.fieldNotes.length}
                     </span>
@@ -226,7 +230,7 @@ function KnowledgePageContent() {
                 <div>
                   <p className="text-xs text-slate-500 mb-4 flex items-center gap-1.5">
                     <Info className="w-3.5 h-3.5" />
-                    Technicians frequently searched for these terms when working on this issue.
+                    {t('admin.ki.search-insight-prefix')}
                   </p>
                   <div className="space-y-2.5">
                     {selectedGap.searchPatterns.map((sp, i) => (
@@ -237,13 +241,13 @@ function KnowledgePageContent() {
                         </div>
                         <div className="flex items-center gap-1">
                           <div className="h-1.5 bg-orange-400 rounded-full" style={{ width: `${(sp.count / 12) * 80}px` }} />
-                          <span className="text-xs font-bold text-slate-700 w-12 text-right">{sp.count} searches</span>
+                          <span className="text-xs font-bold text-slate-700 w-16 text-right">{sp.count} {t('admin.ki.searches')}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                   <div className="mt-4 bg-orange-50 border border-orange-100 rounded-lg px-4 py-3 text-xs text-orange-700">
-                    <b>Insight:</b> Technicians are searching beyond the current SM scope. This volume indicates a gap in existing documentation.
+                    <b>{t('admin.ki.search.insight')}</b> {t('admin.ki.search.insight-body')}
                   </div>
                 </div>
               )}
@@ -257,14 +261,14 @@ function KnowledgePageContent() {
                       <div className="flex-1">
                         <p className="text-sm font-medium text-slate-800">{qa.question}</p>
                         <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-xs text-slate-400">{qa.views} views</span>
+                          <span className="text-xs text-slate-400">{qa.views} {t('admin.ki.views')}</span>
                           {qa.answered ? (
                             <span className="text-xs text-teal font-medium flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" /> Answered
+                              <CheckCircle2 className="w-3 h-3" /> {t('admin.ki.answered')}
                             </span>
                           ) : (
                             <span className="text-xs text-orange-600 font-medium flex items-center gap-1">
-                              <AlertTriangle className="w-3 h-3" /> Unresolved
+                              <AlertTriangle className="w-3 h-3" /> {t('admin.ki.unresolved')}
                             </span>
                           )}
                         </div>
@@ -292,7 +296,7 @@ function KnowledgePageContent() {
                     </div>
                   ))}
                   <div className="text-xs text-slate-500 italic mt-2">
-                    These documents cover the initial diagnosis but do not address recurring or post-repair scenarios identified in field notes.
+                    {t('admin.ki.existing.note')}
                   </div>
                 </div>
               )}
@@ -306,7 +310,7 @@ function KnowledgePageContent() {
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div>
-                <div className="text-xs font-bold text-violet-600 uppercase tracking-wide mb-1">Suggested Knowledge Improvement</div>
+                <div className="text-xs font-bold text-violet-600 uppercase tracking-wide mb-1">{t('admin.ki.suggest.label')}</div>
                 <h3 className="text-base font-bold text-slate-900">{selectedGap.suggestedImprovement.title}</h3>
               </div>
             </div>
@@ -316,7 +320,7 @@ function KnowledgePageContent() {
             </p>
 
             <div className="pl-12 mb-5">
-              <div className="text-xs font-bold text-violet-700 mb-2">Why detected?</div>
+              <div className="text-xs font-bold text-violet-700 mb-2">{t('admin.ki.suggest.why')}</div>
               <ul className="space-y-1.5">
                 {selectedGap.suggestedImprovement.reasons.map((r, i) => (
                   <li key={i} className="flex items-start gap-2 text-xs text-slate-600">
@@ -332,7 +336,7 @@ function KnowledgePageContent() {
               {createdTIE[selectedGap.id] ? (
                 <div className="flex items-center gap-2 bg-teal text-white px-4 py-2 rounded-lg text-sm font-bold">
                   <CheckCircle2 className="w-4 h-4" />
-                  TIE Candidate Created
+                  {t('admin.ki.created.title')}
                 </div>
               ) : (
                 <button
@@ -340,26 +344,26 @@ function KnowledgePageContent() {
                   onClick={() => handleCreateTIE(selectedGap.id)}
                 >
                   <Zap className="w-4 h-4" />
-                  Create TIE Candidate
+                  {t('admin.ki.action.tie')}
                 </button>
               )}
               <button className="flex items-center gap-2 border border-violet-200 text-violet-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-violet-50 transition-colors">
                 <MessageCircle className="w-4 h-4" />
-                Create FAQ Candidate
+                {t('admin.ki.action.faq')}
               </button>
               <button className="flex items-center gap-2 border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
                 <BookOpen className="w-4 h-4" />
-                Add to Recommendation Rule
+                {t('admin.ki.action.rule')}
               </button>
               <button className="text-sm text-slate-400 hover:text-slate-600 transition-colors px-2 py-2">
-                Mark as Not Relevant
+                {t('admin.ki.action.ignore')}
               </button>
             </div>
 
             {createdTIE[selectedGap.id] && (
               <div className="mt-4 pl-12">
                 <div className="bg-teal/10 border border-teal/20 rounded-lg px-4 py-3 text-sm text-teal font-medium">
-                  ✓ This knowledge can now be reviewed and reused in future jobs.
+                  {t('admin.ki.created.body')}
                 </div>
               </div>
             )}
@@ -373,15 +377,15 @@ function KnowledgePageContent() {
                   <ArrowRight className="w-4 h-4 text-teal" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-slate-900">Knowledge is being reviewed</div>
-                  <div className="text-xs text-slate-500">Once published, track how it performs in Recommendation Performance.</div>
+                  <div className="text-sm font-semibold text-slate-900">{t('admin.ki.flow.title')}</div>
+                  <div className="text-xs text-slate-500">{t('admin.ki.flow.body')}</div>
                 </div>
               </div>
               <button
                 className="flex items-center gap-1.5 text-sm font-bold text-teal hover:underline"
                 onClick={() => router.push('/admin/recommendations')}
               >
-                View Performance <ChevronRight className="w-4 h-4" />
+                {t('admin.ki.flow.link')} <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           )}

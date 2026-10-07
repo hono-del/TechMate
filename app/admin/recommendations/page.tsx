@@ -25,14 +25,14 @@ import {
   type RecommendationMetric,
   type WorkflowStep,
 } from '@/data/admin/recommendations';
+import { useLanguage } from '@/context/LanguageContext';
 
-function KpiCard({ label, value, unit, icon: Icon, color, trend }: {
+function KpiCard({ label, value, unit, icon: Icon, color }: {
   label: string;
   value: number;
   unit?: string;
   icon: React.ElementType;
   color: string;
-  trend?: 'positive' | 'negative' | 'neutral';
 }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 px-5 py-4">
@@ -72,11 +72,11 @@ function TypeBadge({ type }: { type: RecommendationMetric['type'] }) {
   );
 }
 
-function RateBar({ rate, max = 100, color }: { rate: number; max?: number; color: string }) {
+function RateBar({ rate, color }: { rate: number; color: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${(rate / max) * 100}%` }} />
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${rate}%` }} />
       </div>
       <span className="text-xs font-semibold text-slate-700 w-10 text-right">{rate}%</span>
     </div>
@@ -84,6 +84,7 @@ function RateBar({ rate, max = 100, color }: { rate: number; max?: number; color
 }
 
 function DetailDrawer({ rec, onClose }: { rec: RecommendationMetric; onClose: () => void }) {
+  const { t } = useLanguage();
   const openRate = Math.round((rec.opened / rec.shown) * 100);
   return (
     <div className="fixed inset-0 z-50 flex" onClick={onClose}>
@@ -105,25 +106,25 @@ function DetailDrawer({ rec, onClose }: { rec: RecommendationMetric; onClose: ()
         <div className="p-5 space-y-5">
           {/* Context */}
           <div className="space-y-2">
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">Context</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wide">{t('admin.rec.drawer.context')}</div>
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-slate-50 rounded-lg px-3 py-2">
-                <div className="text-[10px] text-slate-400">Type</div>
+                <div className="text-[10px] text-slate-400">{t('admin.rec.drawer.type')}</div>
                 <div className="flex items-center gap-1.5 mt-0.5"><TypeBadge type={rec.type} /></div>
               </div>
               <div className="bg-slate-50 rounded-lg px-3 py-2">
-                <div className="text-[10px] text-slate-400">Workflow Step</div>
+                <div className="text-[10px] text-slate-400">{t('admin.rec.drawer.step')}</div>
                 <div className="text-xs font-semibold text-slate-800 mt-0.5">{rec.workflowStep}</div>
               </div>
               {rec.dtc && (
                 <div className="bg-slate-50 rounded-lg px-3 py-2">
-                  <div className="text-[10px] text-slate-400">DTC</div>
+                  <div className="text-[10px] text-slate-400">{t('admin.rec.drawer.dtc')}</div>
                   <div className="text-xs font-semibold text-brand-blue mt-0.5">{rec.dtc}</div>
                 </div>
               )}
               {rec.vehicleModels && (
                 <div className="bg-slate-50 rounded-lg px-3 py-2">
-                  <div className="text-[10px] text-slate-400">Vehicles</div>
+                  <div className="text-[10px] text-slate-400">{t('admin.rec.drawer.vehicles')}</div>
                   <div className="text-xs font-semibold text-slate-800 mt-0.5">{rec.vehicleModels.join(', ')}</div>
                 </div>
               )}
@@ -135,7 +136,7 @@ function DetailDrawer({ rec, onClose }: { rec: RecommendationMetric; onClose: ()
 
           {/* Why Recommended */}
           <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Why Recommended?</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">{t('admin.rec.drawer.why')}</div>
             <div className="space-y-1.5">
               {rec.whyRecommended.map((r, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs text-slate-700">
@@ -148,32 +149,32 @@ function DetailDrawer({ rec, onClose }: { rec: RecommendationMetric; onClose: ()
 
           {/* Performance metrics */}
           <div>
-            <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Performance</div>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">{t('admin.rec.drawer.perf')}</div>
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-600">Open Rate</span>
+                  <span className="text-slate-600">{t('admin.rec.drawer.open')}</span>
                   <span className="font-semibold">{openRate}%</span>
                 </div>
                 <RateBar rate={openRate} color="bg-brand-blue" />
               </div>
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-600">Helpful Rate</span>
+                  <span className="text-slate-600">{t('admin.rec.drawer.helpful')}</span>
                   <span className="font-semibold">{rec.helpfulRate}%</span>
                 </div>
                 <RateBar rate={rec.helpfulRate} color="bg-teal" />
               </div>
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-600">Used in Resolved Jobs</span>
+                  <span className="text-slate-600">{t('admin.rec.drawer.resolved')}</span>
                   <span className="font-semibold">{rec.resolvedJobRate}%</span>
                 </div>
                 <RateBar rate={rec.resolvedJobRate} color="bg-teal" />
               </div>
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-600">Additional Search After View</span>
+                  <span className="text-slate-600">{t('admin.rec.drawer.extra')}</span>
                   <span className="font-semibold text-orange-600">{rec.additionalSearchRate}%</span>
                 </div>
                 <RateBar rate={rec.additionalSearchRate} color="bg-orange-400" />
@@ -183,13 +184,13 @@ function DetailDrawer({ rec, onClose }: { rec: RecommendationMetric; onClose: ()
 
           <div className="grid grid-cols-3 gap-2">
             {[
-              { label: 'Shown', value: rec.shown },
-              { label: 'Opened', value: rec.opened },
-              { label: 'Helpful', value: `${rec.helpfulRate}%` },
+              { labelKey: 'admin.rec.drawer.shown',  value: rec.shown },
+              { labelKey: 'admin.rec.drawer.opened', value: rec.opened },
+              { labelKey: 'admin.rec.drawer.helpful',value: `${rec.helpfulRate}%` },
             ].map((m) => (
-              <div key={m.label} className="bg-slate-50 rounded-lg px-3 py-3 text-center">
+              <div key={m.labelKey} className="bg-slate-50 rounded-lg px-3 py-3 text-center">
                 <div className="text-lg font-bold text-slate-900">{m.value}</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">{m.label}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">{t(m.labelKey as Parameters<typeof t>[0])}</div>
               </div>
             ))}
           </div>
@@ -207,6 +208,7 @@ function DetailDrawer({ rec, onClose }: { rec: RecommendationMetric; onClose: ()
 }
 
 export default function RecommendationsPage() {
+  const { t } = useLanguage();
   const [selectedRec, setSelectedRec] = useState<RecommendationMetric | null>(null);
   const [selectedStep, setSelectedStep] = useState<WorkflowStep | 'All'>('All');
 
@@ -224,17 +226,17 @@ export default function RecommendationsPage() {
     <div className="px-8 py-6 space-y-6 max-w-[1440px] mx-auto">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Recommendation Performance</h1>
-        <p className="text-sm text-slate-500 mt-1">Understand what information actually helps technicians.</p>
+        <h1 className="text-2xl font-bold text-slate-900">{t('admin.rec.title')}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t('admin.rec.subtitle')}</p>
       </div>
 
       {/* ── KPI Summary ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-5 gap-4">
-        <KpiCard label="Recommendations Shown" value={REC_KPI.shown} icon={BarChart2} color="bg-navy" trend="neutral" />
-        <KpiCard label="Open Rate" value={REC_KPI.openRate} unit="%" icon={ArrowUpRight} color="bg-brand-blue" trend="positive" />
-        <KpiCard label="Helpful Rate" value={REC_KPI.helpfulRate} unit="%" icon={CheckCircle2} color="bg-teal" trend="positive" />
-        <KpiCard label="Used in Resolved Jobs" value={REC_KPI.usedInResolvedJobs} unit="%" icon={TrendingUp} color="bg-teal" trend="positive" />
-        <KpiCard label="Additional Search After Rec" value={REC_KPI.additionalSearchAfterRec} unit="%" icon={TrendingDown} color="bg-orange-500" trend="negative" />
+        <KpiCard label={t('admin.rec.kpi.shown')}    value={REC_KPI.shown}                    icon={BarChart2}    color="bg-navy" />
+        <KpiCard label={t('admin.rec.kpi.open')}     value={REC_KPI.openRate}     unit="%"     icon={ArrowUpRight} color="bg-brand-blue" />
+        <KpiCard label={t('admin.rec.kpi.helpful')}  value={REC_KPI.helpfulRate}  unit="%"     icon={CheckCircle2} color="bg-teal" />
+        <KpiCard label={t('admin.rec.kpi.resolved')} value={REC_KPI.usedInResolvedJobs} unit="%" icon={TrendingUp} color="bg-teal" />
+        <KpiCard label={t('admin.rec.kpi.extra')}    value={REC_KPI.additionalSearchAfterRec} unit="%" icon={TrendingDown} color="bg-orange-500" />
       </div>
 
       {/* ── Main Grid ───────────────────────────────────────────────────────── */}
@@ -244,8 +246,8 @@ export default function RecommendationsPage() {
         <div className="col-span-8 bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-bold text-slate-900">Top Performing Knowledge</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Click any row to view full recommendation detail</p>
+              <h2 className="text-sm font-bold text-slate-900">{t('admin.rec.top.title')}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{t('admin.rec.top.subtitle')}</p>
             </div>
             {/* Workflow filter */}
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -259,7 +261,7 @@ export default function RecommendationsPage() {
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
-                  {step}
+                  {step === 'All' ? t('admin.rec.filter.all') : step}
                 </button>
               ))}
             </div>
@@ -270,12 +272,12 @@ export default function RecommendationsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">Knowledge</th>
-                  <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">Shown</th>
-                  <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">Opened</th>
-                  <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">Helpful</th>
-                  <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">Resolved Jobs</th>
-                  <th className="text-right px-5 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">Step</th>
+                  <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">{t('admin.rec.col.knowledge')}</th>
+                  <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">{t('admin.rec.col.shown')}</th>
+                  <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">{t('admin.rec.col.opened')}</th>
+                  <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">{t('admin.rec.col.helpful')}</th>
+                  <th className="text-center px-3 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">{t('admin.rec.col.resolved')}</th>
+                  <th className="text-right px-5 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wide">{t('admin.rec.col.step')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -335,8 +337,8 @@ export default function RecommendationsPage() {
           {/* Workflow Performance */}
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-900">Performance by Workflow</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Helpful rate at each step</p>
+              <h2 className="text-sm font-bold text-slate-900">{t('admin.rec.workflow.title')}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{t('admin.rec.workflow.sub')}</p>
             </div>
             <div className="p-4 space-y-3">
               {WORKFLOW_PERFORMANCE.map((wp) => (
@@ -363,9 +365,9 @@ export default function RecommendationsPage() {
             <div className="px-5 py-4 border-b border-red-50 bg-red-50/30">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
-                <h2 className="text-sm font-bold text-slate-900">Needs Improvement</h2>
+                <h2 className="text-sm font-bold text-slate-900">{t('admin.rec.low.title')}</h2>
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">Low-performing recommendations to review</p>
+              <p className="text-xs text-slate-500 mt-0.5">{t('admin.rec.low.sub')}</p>
             </div>
             <div className="divide-y divide-slate-50">
               {LOW_PERFORMING.map((rec) => (
@@ -387,15 +389,15 @@ export default function RecommendationsPage() {
                   <div className="grid grid-cols-3 gap-2 mb-2">
                     <div className="text-center bg-slate-50 rounded px-2 py-1">
                       <div className="text-sm font-bold text-red-500">{rec.helpfulRate}%</div>
-                      <div className="text-[10px] text-slate-400">Helpful</div>
+                      <div className="text-[10px] text-slate-400">{t('admin.rec.col.helpful')}</div>
                     </div>
                     <div className="text-center bg-slate-50 rounded px-2 py-1">
                       <div className="text-sm font-bold text-red-500">{Math.round((rec.opened / rec.shown) * 100)}%</div>
-                      <div className="text-[10px] text-slate-400">Open rate</div>
+                      <div className="text-[10px] text-slate-400">{t('admin.rec.kpi.open')}</div>
                     </div>
                     <div className="text-center bg-slate-50 rounded px-2 py-1">
                       <div className="text-sm font-bold text-orange-500">{rec.additionalSearchRate}%</div>
-                      <div className="text-[10px] text-slate-400">Extra search</div>
+                      <div className="text-[10px] text-slate-400">{t('admin.rec.kpi.extra')}</div>
                     </div>
                   </div>
                   {rec.performanceNote && (
@@ -405,7 +407,7 @@ export default function RecommendationsPage() {
                     className="text-xs font-bold text-brand-blue flex items-center gap-0.5 hover:underline"
                     onClick={(e) => { e.stopPropagation(); setSelectedRec(rec); }}
                   >
-                    Review Recommendation <ChevronRight className="w-3.5 h-3.5" />
+                    {t('admin.rec.review')} <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
@@ -423,9 +425,7 @@ export default function RecommendationsPage() {
           <div>
             <div className="text-white font-bold text-base mb-1">Field → Knowledge → Improvement → Better Service</div>
             <div className="text-white/60 text-sm leading-relaxed">
-              Knowledge created from field gaps (e.g., P0420 post-repair verification TIE) is now showing 88% helpful rate
-              and contributing to 81% resolution in related jobs. Better knowledge leads to better recommendations,
-              and better recommendations lead to better service.
+              {t('admin.rec.loop.body')}
             </div>
           </div>
         </div>

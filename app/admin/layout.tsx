@@ -15,23 +15,22 @@ import {
   ArrowLeft,
   Wrench,
 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
-const NAV_ITEMS = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
-  { href: '/admin/knowledge', label: 'Knowledge Improvement', icon: BookOpen },
-  { href: '/admin/recommendations', label: 'Recommendation Performance', icon: BarChart3 },
+const NAV_HREFS = [
+  { href: '/admin', key: 'admin.nav.overview' as const, icon: LayoutDashboard, exact: true },
+  { href: '/admin/knowledge', key: 'admin.nav.knowledge' as const, icon: BookOpen },
+  { href: '/admin/recommendations', key: 'admin.nav.recs' as const, icon: BarChart3 },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { lang, toggleLang, t } = useLanguage();
   const [mounted, setMounted] = useState(false);
-  const [region] = useState('Asia Pacific');
-  const [dealer] = useState('All Dealers');
-  const [period] = useState('Last 30 Days');
 
   useEffect(() => { setMounted(true); }, []);
 
-  const isActive = (item: typeof NAV_ITEMS[0]) => {
+  const isActive = (item: typeof NAV_HREFS[0]) => {
     if (!mounted) return false;
     if (item.exact) return pathname === item.href;
     return pathname.startsWith(item.href);
@@ -49,14 +48,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <div>
               <div className="text-white font-bold text-base leading-none">TechMate</div>
-              <div className="text-white/50 text-[10px] mt-0.5 uppercase tracking-wider">Admin Console</div>
+              <div className="text-white/50 text-[10px] mt-0.5 uppercase tracking-wider">{t('admin.console')}</div>
             </div>
           </div>
         </div>
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_HREFS.map((item) => {
             const active = isActive(item);
             return (
               <Link
@@ -69,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }`}
               >
                 <item.icon className="w-4 h-4 flex-shrink-0" />
-                <span>{item.label}</span>
+                <span>{t(item.key)}</span>
               </Link>
             );
           })}
@@ -82,7 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-all text-sm"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Technician View</span>
+            <span>{t('admin.nav.technician')}</span>
           </Link>
         </div>
       </aside>
@@ -91,7 +90,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
         <header className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-4 flex-shrink-0">
-          {/* Page title placeholder — filled by each page via h1 */}
+          {/* Spacer */}
           <div className="flex-1" />
 
           {/* Filters */}
@@ -99,23 +98,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Region */}
             <div className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-3 py-1.5 bg-white hover:bg-slate-50 cursor-pointer text-sm text-slate-600">
               <Globe className="w-3.5 h-3.5 text-slate-400" />
-              <span>{region}</span>
+              <span>{t('admin.filter.region')}</span>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </div>
 
             {/* Dealer */}
             <div className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-3 py-1.5 bg-white hover:bg-slate-50 cursor-pointer text-sm text-slate-600">
               <Building2 className="w-3.5 h-3.5 text-slate-400" />
-              <span>{dealer}</span>
+              <span>{t('admin.filter.dealer')}</span>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </div>
 
             {/* Period */}
             <div className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-3 py-1.5 bg-white hover:bg-slate-50 cursor-pointer text-sm text-slate-600">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
-              <span>{period}</span>
+              <span>{t('admin.filter.period')}</span>
               <ChevronDown className="w-3 h-3 text-slate-400" />
             </div>
+
+            {/* Language Toggle */}
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-3 py-1.5 bg-white hover:bg-slate-50 text-sm text-slate-600 font-medium transition-colors"
+            >
+              <span>{lang === 'en' ? '🇯🇵' : '🇺🇸'}</span>
+              <span>{lang === 'en' ? '日本語' : 'English'}</span>
+            </button>
 
             {/* User */}
             <div className="w-8 h-8 rounded-full bg-navy flex items-center justify-center ml-1">
