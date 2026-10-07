@@ -6,7 +6,8 @@ import { getLocalizedAllJobs } from '@/data/localizedData';
 import { StatusBadge } from '@/components/common/Badge';
 import { WORKFLOW_STEPS } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
-import { Car, AlertCircle, Clock, User, ChevronRight, LayoutDashboard, Bell } from 'lucide-react';
+import { Car, AlertCircle, Clock, User, ChevronRight, LayoutDashboard, Bell, Sparkles, Search, Settings } from 'lucide-react';
+import { GlobalAISearchModal } from '@/components/knowledge/GlobalAISearchModal';
 import type { TranslationKey } from '@/lib/translations';
 
 const STEP_KEYS: Record<string, TranslationKey> = {
@@ -21,6 +22,7 @@ const STEP_KEYS: Record<string, TranslationKey> = {
 export default function HomePage() {
   const { lang, toggleLang, t } = useLanguage();
   const [today, setToday] = useState('');
+  const [showAISearch, setShowAISearch] = useState(false);
   const ALL_JOBS = getLocalizedAllJobs(lang);
 
   useEffect(() => {
@@ -41,6 +43,13 @@ export default function HomePage() {
           <div className="text-lg font-bold text-white">{t('app.tagline')}</div>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowAISearch(true)}
+            className="flex items-center gap-1.5 bg-violet-500 hover:bg-violet-400 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            {t('home.ai-search')}
+          </button>
           {/* Language toggle */}
           <button
             onClick={toggleLang}
@@ -49,6 +58,13 @@ export default function HomePage() {
             <span>{lang === 'en' ? '🇯🇵' : '🇺🇸'}</span>
             <span>{lang === 'en' ? '日本語' : 'English'}</span>
           </button>
+          <Link
+            href="/admin"
+            className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Settings className="w-3.5 h-3.5" />
+            Admin
+          </Link>
           <button className="relative p-2 rounded-lg hover:bg-blue-800 transition-colors">
             <Bell className="w-5 h-5 text-blue-300" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-orange-400 rounded-full" />
@@ -84,6 +100,23 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        <button
+          onClick={() => setShowAISearch(true)}
+          className="w-full mb-8 bg-white border border-violet-200 hover:border-violet-400 hover:shadow-md rounded-2xl px-5 py-4 flex items-center gap-4 text-left transition-all group"
+        >
+          <div className="w-11 h-11 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-500 group-hover:text-white transition-colors">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-slate-900">{t('home.ai-search')}</div>
+            <div className="text-xs text-slate-500 mt-0.5">{t('home.ai-search.hint')}</div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 flex-1 max-w-md rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-sm text-slate-400">
+            <Search className="w-4 h-4" />
+            {t('home.ai-search.placeholder')}
+          </div>
+        </button>
 
         {/* In Progress */}
         {inProgress.length > 0 && (
@@ -171,6 +204,7 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      {showAISearch && <GlobalAISearchModal onClose={() => setShowAISearch(false)} />}
     </div>
   );
 }

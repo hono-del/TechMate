@@ -8,17 +8,18 @@ import type { KnowledgeItem } from '@/types';
 interface InfoDrawerProps {
   item: KnowledgeItem | null;
   onClose: () => void;
+  citedPage?: string | null;
 }
 
-export function InfoDrawer({ item, onClose }: InfoDrawerProps) {
+export function InfoDrawer({ item, onClose, citedPage }: InfoDrawerProps) {
   const { t } = useLanguage();
   if (!item) return null;
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/40 z-[60] backdrop-blur-sm" onClick={onClose} />
 
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl z-50 flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl z-[70] flex flex-col">
         {/* Header */}
         <div className="flex items-start gap-3 p-5 border-b border-slate-200 bg-slate-50">
           <div className="flex-1 min-w-0">
@@ -43,6 +44,12 @@ export function InfoDrawer({ item, onClose }: InfoDrawerProps) {
                 {w}
               </div>
             ))}
+          </div>
+        )}
+
+        {citedPage && (
+          <div className="bg-violet-50 border-b border-violet-200 px-5 py-2.5 text-xs font-semibold text-violet-700">
+            {t('drawer.cited-page')}: {citedPage}
           </div>
         )}
 

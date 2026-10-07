@@ -136,6 +136,21 @@ export function getLocalizedKnowledge(step: string, dtcs: string[], model: strin
   });
 }
 
+export function getAllLocalizedKnowledge(lang: Language): KnowledgeItem[] {
+  if (lang === 'en') return KNOWLEDGE_ITEMS;
+  return KNOWLEDGE_ITEMS.map(item => {
+    const ja = JA_KNOWLEDGE[item.id];
+    if (!ja) return item;
+    return {
+      ...item,
+      title: ja.title ?? item.title,
+      summary: ja.summary ?? item.summary,
+      whyRecommended: ja.whyRecommended ?? item.whyRecommended,
+      warnings: ja.warnings ?? item.warnings,
+    };
+  });
+}
+
 // ─── Verification Items ────────────────────────────────────────────────────────
 
 export function getLocalizedVerificationItems(lang: Language): VerificationItem[] {
