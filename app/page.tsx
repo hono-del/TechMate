@@ -73,7 +73,7 @@ export default function HomePage() {
             <span>{lang === 'en' ? '🇯🇵' : '🇺🇸'}</span>
             <span>{lang === 'en' ? '日本語' : 'English'}</span>
           </button>
-          {canAccess('/admin') && (
+          {canAccess('/admin') ? (
             <Link
               href="/admin"
               className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
@@ -81,7 +81,15 @@ export default function HomePage() {
               <Settings className="w-3.5 h-3.5" />
               Admin
             </Link>
-          )}
+          ) : canAccess('/admin/knowledge') ? (
+            <Link
+              href="/admin/knowledge"
+              className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              {t('admin.nav.knowledge')}
+            </Link>
+          ) : null}
           <button
             onClick={() => {
               setShowNews(true);

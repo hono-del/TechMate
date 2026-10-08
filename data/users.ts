@@ -90,12 +90,15 @@ export function getUser(id: string): AppUser | undefined {
 
 export function canAccessPath(role: Role, pathname: string): boolean {
   if (pathname.startsWith('/admin/recommendations')) return role === 'cmc';
-  if (pathname.startsWith('/admin')) return role === 'cmc' || role === 'dealer-admin';
+  if (pathname.startsWith('/admin/knowledge')) return true;
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return role === 'cmc' || role === 'dealer-admin';
+  }
   return true;
 }
 
 export const ADMIN_NAV: { href: string; minRole: Role }[] = [
   { href: '/admin', minRole: 'dealer-admin' },
-  { href: '/admin/knowledge', minRole: 'dealer-admin' },
+  { href: '/admin/knowledge', minRole: 'technician' },
   { href: '/admin/recommendations', minRole: 'cmc' },
 ];

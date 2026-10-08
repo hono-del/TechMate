@@ -10,13 +10,14 @@ import {
   Search,
   ChevronRight,
   CheckCircle2,
-  Clock,
   Zap,
   ArrowRight,
   Sparkles,
   Info,
+  Send,
+  Users,
 } from 'lucide-react';
-import { KNOWLEDGE_GAPS, type KnowledgeGap, type GapStatus } from '@/data/admin/knowledgeGaps';
+import { KNOWLEDGE_GAPS, type KnowledgeGap, type GapStatus, type RelatedQA, type QAReply } from '@/data/admin/knowledgeGaps';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import type { TranslationKey } from '@/lib/translations';
@@ -57,11 +58,18 @@ function KnowledgeTypeIcon({ type }: { type: 'manual' | 'tie' | 'faq' }) {
   return <MessageCircle className="w-4 h-4 text-violet-500" />;
 }
 
+function forumInitials(name: string) {
+  const parts = name.split(/[\s.]+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
 function KnowledgePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { t } = useLanguage();
-  const { canAccess } = useAuth();
+  const { t, lang } = useLanguage();
+  const { canAccess, hasRole, user, dealer } = useAuth();
+  const canCreateKnowledge = hasRole('dealer-admin', 'cmc');
   const initialIssue = searchParams.get('issue') ?? KNOWLEDGE_GAPS[0].id.replace('gap-', '');
 
   const findGap = (issueId: string) =>
@@ -71,9 +79,75 @@ function KnowledgePageContent() {
   const [tab, setTab] = useState<EvidenceTab>('fieldNotes');
   const [gapStatuses, setGapStatuses] = useState<Record<string, GapStatus>>({});
   const [createdTIE, setCreatedTIE] = useState<Record<string, boolean>>({});
+  const [extraThreads, setExtraThreads] = useState<Record<string, RelatedQA[]>>({});
+  const [extraReplies, setExtraReplies] = useState<Record<string, QAReply[]>>({});
+  const [questionDraft, setQuestionDraft] = useState('');
+  const [answerDrafts, setAnswerDrafts] = useState<Record<string, string>>({});
+  const [justPosted, setJustPosted] = useState(false);
+  const [myPostIds, setMyPostIds] = useState<string[]>([]);
 
   const effectiveStatus = (gap: KnowledgeGap): GapStatus =>
     gapStatuses[gap.id] ?? gap.status;
+
+  const posterName = user ? (lang === 'ja' ? user.nameJa : user.name) : '';
+  const posterDealer = dealer
+    ? (lang === 'ja' ? dealer.nameJa : dealer.name)
+    : t('auth.dealer.all');
+
+  const mergeThread = (qa: RelatedQA): RelatedQA => {
+    const more = extraReplies[qa.id] ?? [];
+    const replies = [...qa.replies, ...more];
+    return { ...qa, replies, answered: qa.answered || replies.length > 0 };
+  };
+
+  const forumThreads: RelatedQA[] = [
+    ...(extraThreads[selectedGap.id] ?? []).map(mergeThread),
+    ...selectedGap.relatedQA.map(mergeThread),
+  ];
+
+  const handlePostQuestion = () => {
+    const text = questionDraft.trim();
+    if (!text || !user) return;
+    const firstLine = text.split('\n')[0].trim();
+    const thread: RelatedQA = {
+      id: `qa-local-${Date.now()}`,
+      question: firstLine.length > 110 ? `${firstLine.slice(0, 107)}…` : firstLine,
+      body: text,
+      author: posterName,
+      dealer: posterDealer,
+      date: new Date().toISOString().slice(0, 10),
+      answered: false,
+      views: 1,
+      replies: [],
+    };
+    setExtraThreads((prev) => ({
+      ...prev,
+      [selectedGap.id]: [thread, ...(prev[selectedGap.id] ?? [])],
+    }));
+    setMyPostIds((prev) => [...prev, thread.id]);
+    setQuestionDraft('');
+    setJustPosted(true);
+    setTimeout(() => setJustPosted(false), 2500);
+  };
+
+  const handlePostAnswer = (qaId: string) => {
+    const text = (answerDrafts[qaId] ?? '').trim();
+    if (!text || !user) return;
+    const reply: QAReply = {
+      id: `qa-reply-${Date.now()}`,
+      author: posterName,
+      dealer: posterDealer,
+      date: new Date().toISOString().slice(0, 10),
+      text,
+      helpfulCount: 0,
+    };
+    setExtraReplies((prev) => ({
+      ...prev,
+      [qaId]: [...(prev[qaId] ?? []), reply],
+    }));
+    setMyPostIds((prev) => [...prev, reply.id]);
+    setAnswerDrafts((prev) => ({ ...prev, [qaId]: '' }));
+  };
 
   const handleCreateTIE = (gapId: string) => {
     setCreatedTIE((prev) => ({ ...prev, [gapId]: true }));
@@ -203,6 +277,11 @@ function KnowledgePageContent() {
                       {selectedGap.fieldNotes.length}
                     </span>
                   )}
+                  {tabItem.id === 'qa' && (
+                    <span className="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-bold">
+                      {forumThreads.length}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -254,29 +333,151 @@ function KnowledgePageContent() {
                 </div>
               )}
 
-              {/* Q&A */}
+              {/* Q&A Forum */}
               {tab === 'qa' && (
-                <div className="space-y-3">
-                  {selectedGap.relatedQA.map((qa) => (
-                    <div key={qa.id} className="border border-slate-100 rounded-lg p-4 flex items-start gap-3">
-                      <MessageCircle className="w-4 h-4 text-violet-500 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-800">{qa.question}</p>
-                        <div className="flex items-center gap-3 mt-1.5">
-                          <span className="text-xs text-slate-400">{qa.views} {t('admin.ki.views')}</span>
-                          {qa.answered ? (
-                            <span className="text-xs text-teal font-medium flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" /> {t('admin.ki.answered')}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-orange-600 font-medium flex items-center gap-1">
-                              <AlertTriangle className="w-3 h-3" /> {t('admin.ki.unresolved')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                <div className="space-y-5">
+                  <div className="flex items-start gap-3 bg-violet-50 border border-violet-100 rounded-lg px-4 py-3">
+                    <Users className="w-4 h-4 text-violet-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-violet-800">{t('admin.ki.qa.banner-title')}</p>
+                      <p className="text-xs text-violet-700 mt-0.5 leading-relaxed">{t('admin.ki.qa.banner-body')}</p>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+                    <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">{t('admin.ki.qa.ask-label')}</label>
+                    <textarea
+                      value={questionDraft}
+                      onChange={(e) => setQuestionDraft(e.target.value)}
+                      rows={3}
+                      placeholder={t('admin.ki.qa.ask-placeholder')}
+                      className="mt-2 w-full text-sm border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-violet-300 bg-white"
+                    />
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-[11px] text-slate-400">
+                        {posterName} · {posterDealer}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={!questionDraft.trim()}
+                        onClick={handlePostQuestion}
+                        className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 disabled:opacity-40 disabled:hover:bg-violet-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        <Send className="w-3 h-3" />
+                        {t('admin.ki.qa.post')}
+                      </button>
+                    </div>
+                    {justPosted && (
+                      <p className="mt-2 text-xs text-teal font-medium flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> {t('admin.ki.qa.posted')}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    {forumThreads.map((qa) => (
+                      <article key={qa.id} className="border border-slate-200 rounded-xl overflow-hidden">
+                        <div className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-navy flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                              {forumInitials(qa.author)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-bold text-slate-900">{qa.question}</p>
+                                {myPostIds.includes(qa.id) && (
+                                  <span className="text-[10px] font-bold uppercase bg-brand-blue/10 text-brand-blue px-1.5 py-0.5 rounded">
+                                    {t('admin.ki.qa.you')}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-400 mt-0.5">
+                                {t('admin.ki.qa.asked-by')} {qa.author} · {qa.dealer} · {qa.date}
+                              </p>
+                              <p className="text-sm text-slate-700 mt-2 leading-relaxed">{qa.body}</p>
+                              <div className="flex items-center gap-3 mt-2">
+                                <span className="text-xs text-slate-400">{qa.views} {t('admin.ki.views')}</span>
+                                <span className="text-xs text-slate-400">{qa.replies.length} {t('admin.ki.qa.replies')}</span>
+                                {qa.answered ? (
+                                  <span className="text-xs text-teal font-medium flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" /> {t('admin.ki.answered')}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-orange-600 font-medium flex items-center gap-1">
+                                    <AlertTriangle className="w-3 h-3" /> {t('admin.ki.qa.awaiting')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-50 border-t border-slate-100 px-4 py-3 space-y-3">
+                          {qa.replies.length === 0 && (
+                            <p className="text-xs text-slate-400 italic">{t('admin.ki.qa.no-answers')}</p>
+                          )}
+                          {qa.replies.map((reply) => (
+                            <div
+                              key={reply.id}
+                              className={`rounded-lg p-3 ${
+                                reply.isBestAnswer
+                                  ? 'bg-teal/10 border border-teal/30'
+                                  : 'bg-white border border-slate-100'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                <div className="w-6 h-6 rounded-full bg-violet-600 flex items-center justify-center text-white text-[9px] font-bold">
+                                  {forumInitials(reply.author)}
+                                </div>
+                                <span className="text-xs font-semibold text-slate-700">{reply.author}</span>
+                                {myPostIds.includes(reply.id) && (
+                                  <span className="text-[10px] font-bold uppercase bg-brand-blue/10 text-brand-blue px-1.5 py-0.5 rounded">
+                                    {t('admin.ki.qa.you')}
+                                  </span>
+                                )}
+                                <span className="text-xs text-slate-400">{reply.dealer} · {reply.date}</span>
+                                {reply.isBestAnswer && (
+                                  <span className="text-[10px] font-bold uppercase bg-teal text-white px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                    <CheckCircle2 className="w-3 h-3" /> {t('admin.ki.qa.best')}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-slate-700 leading-relaxed">{reply.text}</p>
+                              {reply.helpfulCount > 0 && (
+                                <p className="text-[11px] text-slate-400 mt-1.5">
+                                  {reply.helpfulCount} {t('admin.ki.qa.helpful')}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+
+                          <div>
+                            <label className="text-[11px] font-semibold text-slate-500">{t('admin.ki.qa.reply-to')}</label>
+                            <div className="mt-1 flex items-end gap-2">
+                              <textarea
+                                value={answerDrafts[qa.id] ?? ''}
+                                onChange={(e) =>
+                                  setAnswerDrafts((prev) => ({ ...prev, [qa.id]: e.target.value }))
+                                }
+                                rows={2}
+                                placeholder={t('admin.ki.qa.answer-placeholder')}
+                                className="flex-1 text-sm border border-slate-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-violet-300 bg-white"
+                              />
+                              <button
+                                type="button"
+                                disabled={!(answerDrafts[qa.id] ?? '').trim()}
+                                onClick={() => handlePostAnswer(qa.id)}
+                                className="flex items-center gap-1 bg-navy hover:bg-navy-light disabled:opacity-40 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors flex-shrink-0"
+                              >
+                                <Send className="w-3 h-3" />
+                                {t('admin.ki.qa.post-answer')}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -333,7 +534,8 @@ function KnowledgePageContent() {
               </ul>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons — dealer admin / CMC only */}
+            {canCreateKnowledge && (
             <div className="pl-12 flex items-center gap-3 flex-wrap">
               {createdTIE[selectedGap.id] ? (
                 <div className="flex items-center gap-2 bg-teal text-white px-4 py-2 rounded-lg text-sm font-bold">
@@ -361,6 +563,7 @@ function KnowledgePageContent() {
                 {t('admin.ki.action.ignore')}
               </button>
             </div>
+            )}
 
             {createdTIE[selectedGap.id] && (
               <div className="mt-4 pl-12">
