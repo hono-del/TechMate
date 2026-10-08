@@ -28,6 +28,7 @@ import {
   type FrictionCard,
 } from '@/data/admin/dashboard';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 
 function KpiCard({ label, value, unit, icon: Icon, color }: {
   label: string;
@@ -95,6 +96,7 @@ function KnowledgeTypeLabel({ type }: { type: KnowledgeUsageItem['type'] }) {
 export default function AdminDashboard() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { canAccess } = useAuth();
 
   const navigateToKnowledge = (issueId?: string) => {
     if (issueId) {
@@ -264,12 +266,14 @@ export default function AdminDashboard() {
                 <h2 className="text-sm font-bold text-slate-900">{t('admin.knowledge.title')}</h2>
                 <p className="text-xs text-slate-500 mt-0.5">{t('admin.knowledge.subtitle')}</p>
               </div>
-              <button
-                onClick={() => router.push('/admin/recommendations')}
-                className="text-xs text-brand-blue font-medium flex items-center gap-0.5 hover:underline"
-              >
-                {t('admin.knowledge.perf')} <ArrowUpRight className="w-3 h-3" />
-              </button>
+              {canAccess('/admin/recommendations') && (
+                <button
+                  onClick={() => router.push('/admin/recommendations')}
+                  className="text-xs text-brand-blue font-medium flex items-center gap-0.5 hover:underline"
+                >
+                  {t('admin.knowledge.perf')} <ArrowUpRight className="w-3 h-3" />
+                </button>
+              )}
             </div>
             <div className="divide-y divide-slate-50">
               {KNOWLEDGE_USAGE.map((item, idx) => (

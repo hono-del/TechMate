@@ -6,8 +6,12 @@ import { getLocalizedAllJobs } from '@/data/localizedData';
 import { StatusBadge } from '@/components/common/Badge';
 import { WORKFLOW_STEPS } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
-import { Car, AlertCircle, Clock, User, ChevronRight, LayoutDashboard, Bell, Sparkles, Search, Settings } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { UserMenu } from '@/components/common/UserMenu';
+import { Car, AlertCircle, Clock, User, ChevronRight, LayoutDashboard, Bell, Sparkles, Search, Settings, BookOpen } from 'lucide-react';
 import { GlobalAISearchModal } from '@/components/knowledge/GlobalAISearchModal';
+import { ManualBrowserCard, ManualBrowserModal } from '@/components/knowledge/ManualBrowser';
+import { LatestNewsModal } from '@/components/common/LatestNewsModal';
 import type { TranslationKey } from '@/lib/translations';
 
 const STEP_KEYS: Record<string, TranslationKey> = {
@@ -21,8 +25,12 @@ const STEP_KEYS: Record<string, TranslationKey> = {
 
 export default function HomePage() {
   const { lang, toggleLang, t } = useLanguage();
+  const { canAccess } = useAuth();
   const [today, setToday] = useState('');
   const [showAISearch, setShowAISearch] = useState(false);
+  const [showManuals, setShowManuals] = useState(false);
+  const [showNews, setShowNews] = useState(false);
+  const [newsSeen, setNewsSeen] = useState(false);
   const ALL_JOBS = getLocalizedAllJobs(lang);
 
   useEffect(() => {
@@ -44,6 +52,13 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setShowManuals(true)}
+            className="flex items-center gap-1.5 bg-brand-blue hover:bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            {t('home.manuals')}
+          </button>
+          <button
             onClick={() => setShowAISearch(true)}
             className="flex items-center gap-1.5 bg-violet-500 hover:bg-violet-400 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm"
           >
@@ -58,24 +73,30 @@ export default function HomePage() {
             <span>{lang === 'en' ? '🇯🇵' : '🇺🇸'}</span>
             <span>{lang === 'en' ? '日本語' : 'English'}</span>
           </button>
-          <Link
-            href="/admin"
-            className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+          {canAccess('/admin') && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              Admin
+            </Link>
+          )}
+          <button
+            onClick={() => {
+              setShowNews(true);
+              setNewsSeen(true);
+            }}
+            title={t('news.open')}
+            aria-label={t('news.open')}
+            className="relative p-2 rounded-lg hover:bg-blue-800 transition-colors"
           >
-            <Settings className="w-3.5 h-3.5" />
-            Admin
-          </Link>
-          <button className="relative p-2 rounded-lg hover:bg-blue-800 transition-colors">
             <Bell className="w-5 h-5 text-blue-300" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-orange-400 rounded-full" />
+            {!newsSeen && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-orange-400 rounded-full" />
+            )}
           </button>
-          <div className="flex items-center gap-2 bg-blue-800 rounded-lg px-3 py-1.5">
-            <div className="w-7 h-7 bg-blue-500 rounded-full flex items-center justify-center text-xs font-bold">KY</div>
-            <div>
-              <div className="text-xs text-blue-200 font-medium">Kenji Yamamoto</div>
-              <div className="text-xs text-blue-300">{lang === 'ja' ? 'シニアテクニシャン' : 'Senior Technician'}</div>
-            </div>
-          </div>
+          <UserMenu variant="dark" />
         </div>
       </header>
 
@@ -117,6 +138,8 @@ export default function HomePage() {
             {t('home.ai-search.placeholder')}
           </div>
         </button>
+
+        <ManualBrowserCard />
 
         {/* In Progress */}
         {inProgress.length > 0 && (
@@ -205,6 +228,8 @@ export default function HomePage() {
         </div>
       </div>
       {showAISearch && <GlobalAISearchModal onClose={() => setShowAISearch(false)} />}
+      {showManuals && <ManualBrowserModal onClose={() => setShowManuals(false)} />}
+      {showNews && <LatestNewsModal onClose={() => setShowNews(false)} />}
     </div>
   );
 }

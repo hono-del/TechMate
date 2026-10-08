@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { KNOWLEDGE_GAPS, type KnowledgeGap, type GapStatus } from '@/data/admin/knowledgeGaps';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import type { TranslationKey } from '@/lib/translations';
 
 type EvidenceTab = 'fieldNotes' | 'searchPatterns' | 'qa' | 'existing';
@@ -60,6 +61,7 @@ function KnowledgePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { t } = useLanguage();
+  const { canAccess } = useAuth();
   const initialIssue = searchParams.get('issue') ?? KNOWLEDGE_GAPS[0].id.replace('gap-', '');
 
   const findGap = (issueId: string) =>
@@ -370,7 +372,7 @@ function KnowledgePageContent() {
           </div>
 
           {/* CTA to Recommendation Performance */}
-          {effectiveStatus(selectedGap) === 'candidate' && (
+          {effectiveStatus(selectedGap) === 'candidate' && canAccess('/admin/recommendations') && (
             <div className="bg-white border border-teal/30 rounded-xl px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-teal/10 flex items-center justify-center">
