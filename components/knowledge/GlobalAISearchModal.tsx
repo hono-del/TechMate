@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   X, Search, Sparkles, Loader2, ChevronRight, Lightbulb, SlidersHorizontal,
-  FileText, ExternalLink,
+  FileText, ExternalLink, ShieldAlert,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getAllLocalizedKnowledge } from '@/data/localizedData';
@@ -11,8 +11,9 @@ import { InfoDrawer } from '@/components/knowledge/InfoDrawer';
 import { InfoClassBadge } from '@/components/common/Badge';
 import type { KnowledgeItem } from '@/types';
 import type { TranslationKey } from '@/lib/translations';
+import { getActiveVersion } from '@/data/admin/promptVersions';
 
-type Mode = 'idle' | 'searching' | 'results';
+type Mode = 'idle' | 'searching' | 'results' | 'no-answer';
 type DocKind = 'om' | 'sm' | 'tie' | 'qa';
 
 const MODELS = ['Corolla Cross', 'RAV4', 'Camry', 'Yaris Cross', 'Land Cruiser 300'] as const;
@@ -68,6 +69,11 @@ function normalizeQuery(query: string): string {
 }
 
 const LC_STORY_IDS = ['lc-sm-p0420', 'lc-tie-p0420', 'lc-qa-p0420'] as const;
+
+function isOutOfCoverage(query: string): boolean {
+  const q = query.toLowerCase();
+  return /p9999|wastegate|ウェイストゲート|paint peel|塗装.?剥|insurance payout|finance department/.test(q);
+}
 
 function isLcP420Story(query: string, model: string, year: string, docTypes: DocKind[]): boolean {
   const blob = `${query} ${model} ${year} ${docTypes.join(' ')}`.toLowerCase();
@@ -609,7 +615,14 @@ export function GlobalAISearchModal({ onClose }: Props) {
   const [hits, setHits] = useState<KnowledgeItem[]>([]);
   const [drawerItem, setDrawerItem] = useState<KnowledgeItem | null>(null);
   const [citedPage, setCitedPage] = useState<string | null>(null);
+  const [promptVer] = useState(() => getActiveVersion());
+  const [publishedOnly, setPublishedOnly] = useState(true);
+  const [excludeSuperseded, setExcludeSuperseded] = useState(true);
+  const [marketOnly, setMarketOnly] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+  const versionLabel = t('aisearch.version')
+    .replace('{prompt}', `${promptVer.promptId} v${promptVer.version}`)
+    .replace('{model}', promptVer.modelId);
 
   const catalog = useMemo(
     () => [...getAllLocalizedKnowledge(lang), ...extraItems(lang)],
@@ -639,6 +652,11 @@ export function GlobalAISearchModal({ onClose }: Props) {
     setQuery(trimmed);
     setMode('searching');
     setTimeout(() => {
+      if (isOutOfCoverage(trimmed)) {
+        setHits([]);
+        setMode('no-answer');
+        return;
+      }
       if (isLcP420Story(trimmed, nextModel, nextYear, nextDocs)) {
         const story = LC_STORY_IDS
           .map(id => catalog.find(i => i.id === id))
@@ -652,9 +670,14 @@ export function GlobalAISearchModal({ onClose }: Props) {
         .map(item => ({ item, score: scoreItem(item, trimmed) }))
         .filter(r => r.score > 0)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 8)
-        .map(r => r.item);
-      setHits(ranked);
+        .slice(0, 8);
+      const topScore = ranked[0]?.score ?? 0;
+      if (ranked.length === 0 || topScore < 3) {
+        setHits([]);
+        setMode('no-answer');
+        return;
+      }
+      setHits(ranked.map(r => r.item));
       setMode('results');
     }, 800);
   };
@@ -667,12 +690,14 @@ export function GlobalAISearchModal({ onClose }: Props) {
           { key: 'aisearch.chip.torque', q: 'O2センサー トルク' },
           { key: 'aisearch.chip.corr', q: 'コネクタ腐食' },
           { key: 'aisearch.chip.im', q: 'I/Mレディネス' },
+          { key: 'aisearch.chip.refuse', q: 'P9999 ターボウェイストゲート' },
         ]
       : [
           { key: 'aisearch.chip.lc', q: 'P420', opts: lcStoryOpts },
           { key: 'aisearch.chip.torque', q: 'O2 sensor torque' },
           { key: 'aisearch.chip.corr', q: 'connector corrosion' },
           { key: 'aisearch.chip.im', q: 'I/M readiness' },
+          { key: 'aisearch.chip.refuse', q: 'P9999 turbo wastegate' },
         ];
 
   const answer = mode === 'results' ? aiAnswer(query, hits[0], hits, lang) : null;
@@ -783,6 +808,22 @@ export function GlobalAISearchModal({ onClose }: Props) {
             </div>
           </div>
 
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+            <span className="font-bold text-slate-400 uppercase tracking-wide">{t('aisearch.scope')}</span>
+            <label className="inline-flex items-center gap-1.5">
+              <input type="checkbox" checked={publishedOnly} onChange={(e) => setPublishedOnly(e.target.checked)} />
+              {t('aisearch.scope.published')}
+            </label>
+            <label className="inline-flex items-center gap-1.5">
+              <input type="checkbox" checked={excludeSuperseded} onChange={(e) => setExcludeSuperseded(e.target.checked)} />
+              {t('aisearch.scope.superseded')}
+            </label>
+            <label className="inline-flex items-center gap-1.5">
+              <input type="checkbox" checked={marketOnly} onChange={(e) => setMarketOnly(e.target.checked)} />
+              {t('aisearch.scope.market')}
+            </label>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400">{t('aisearch.examples')}</span>
             {chips.map(chip => (
@@ -811,6 +852,46 @@ export function GlobalAISearchModal({ onClose }: Props) {
               <Loader2 className="w-7 h-7 text-violet-500 animate-spin" />
               <span className="text-sm font-medium">{t('aisearch.searching')}</span>
             </div>
+          )}
+
+          {(mode === 'results' || mode === 'no-answer') && (
+            <section className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-600">
+              <div className="font-bold text-slate-700 mb-1">{t('aisearch.build.title')}</div>
+              <p className="leading-relaxed">{t('aisearch.build.body')}</p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {query && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-full">q: {query}</span>}
+                {model !== 'all' && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-full">{model}</span>}
+                {year !== 'all' && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-full">{year}</span>}
+                {publishedOnly && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-full">published</span>}
+                {excludeSuperseded && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-full">!superseded</span>}
+                {marketOnly && <span className="bg-white border border-slate-200 px-2 py-0.5 rounded-full">APAC</span>}
+              </div>
+              <p className="text-amber-700 mt-2">{t('aisearch.build.dropped')}</p>
+            </section>
+          )}
+
+          {mode === 'no-answer' && (
+            <section className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+                  <ShieldAlert className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-amber-900">{t('aisearch.refuse.title')}</div>
+                  <p className="text-sm text-amber-800 mt-1.5 leading-relaxed">{t('aisearch.refuse.body')}</p>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <span className="text-xs font-medium bg-white border border-amber-200 text-amber-800 px-3 py-1.5 rounded-lg">
+                      {t('aisearch.refuse.search')}
+                    </span>
+                    <span className="text-xs font-medium bg-white border border-amber-200 text-amber-800 px-3 py-1.5 rounded-lg">
+                      {t('aisearch.refuse.escalate')}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-amber-600 mt-3">{t('aisearch.refuse.logged')}</p>
+                  <p className="text-[11px] text-amber-700/80 mt-1 font-mono">{versionLabel}</p>
+                </div>
+              </div>
+            </section>
           )}
 
           {mode === 'results' && answer && (
@@ -868,6 +949,7 @@ export function GlobalAISearchModal({ onClose }: Props) {
                   ))}
                 </ul>
                 <p className="text-xs text-violet-500 mt-3">✦ {t('ai.disclaimer')}</p>
+                <p className="text-[11px] text-violet-400 mt-1.5 font-mono">{versionLabel}</p>
               </section>
 
               <section>

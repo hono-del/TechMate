@@ -14,6 +14,14 @@ import {
   ArrowLeft,
   Wrench,
   Lock,
+  Tags,
+  ClipboardCheck,
+  Shield,
+  GitBranch,
+  FlaskConical,
+  Database,
+  Ruler,
+  ServerCog,
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
@@ -23,7 +31,15 @@ import type { TranslationKey } from '@/lib/translations';
 const NAV_HREFS: { href: string; key: TranslationKey; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { href: '/admin', key: 'admin.nav.overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/knowledge', key: 'admin.nav.knowledge', icon: BookOpen },
+  { href: '/admin/content', key: 'admin.nav.content', icon: Tags },
+  { href: '/admin/review', key: 'admin.nav.review', icon: ClipboardCheck },
   { href: '/admin/recommendations', key: 'admin.nav.recs', icon: BarChart3 },
+  { href: '/admin/governance', key: 'admin.nav.governance', icon: Shield },
+  { href: '/admin/prompts', key: 'admin.nav.prompts', icon: GitBranch },
+  { href: '/admin/quality', key: 'admin.nav.quality', icon: FlaskConical },
+  { href: '/admin/data-ops', key: 'admin.nav.data', icon: Database },
+  { href: '/admin/extract', key: 'admin.nav.extract', icon: Ruler },
+  { href: '/admin/platform', key: 'admin.nav.platform', icon: ServerCog },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -65,7 +81,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {visNav.map((item) => {
             const active = isActive(item);
             return (

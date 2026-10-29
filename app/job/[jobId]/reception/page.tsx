@@ -49,6 +49,9 @@ export default function ReceptionPage() {
   const [contextAcquired, setContextAcquired] = useState(false);
   const [showQuestions, setShowQuestions] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [vinFailed, setVinFailed] = useState(false);
+  const [manualModel, setManualModel] = useState(job.vehicle.model);
+  const [manualYear, setManualYear] = useState(String(job.vehicle.year));
 
   const handleAcquireContext = () => {
     setFetching(true);
@@ -226,16 +229,59 @@ export default function ReceptionPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">{t('vehicle.model')}</span>
-                  <span className="font-semibold text-slate-900">{job.vehicle.year} {job.vehicle.model}</span>
+                  <span className="font-semibold text-slate-900">
+                    {vinFailed ? `${manualYear} ${manualModel}` : `${job.vehicle.year} ${job.vehicle.model}`}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500">{t('vehicle.grade')}</span>
                   <span className="font-medium text-slate-700">{job.vehicle.grade}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm items-center">
                   <span className="text-slate-500">{t('header.vin')}</span>
                   <span className="font-mono text-slate-600 text-xs">{job.vehicle.vin}</span>
                 </div>
+                <div className="flex justify-between text-sm items-center">
+                  <span className="text-slate-500">{t('reception.vin.decode')}</span>
+                  {vinFailed ? (
+                    <span className="text-[10px] font-bold uppercase bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">{t('reception.vin.fail')}</span>
+                  ) : (
+                    <span className="text-[10px] font-bold uppercase bg-green-100 text-green-700 px-1.5 py-0.5 rounded">{t('reception.vin.ok')}</span>
+                  )}
+                </div>
+                {vinFailed && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 space-y-2">
+                    <p className="text-xs text-amber-800">{t('reception.vin.help')}</p>
+                    <div className="text-[10px] font-bold uppercase text-amber-700">{t('reception.vin.manual')}</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <select
+                        value={manualModel}
+                        onChange={(e) => setManualModel(e.target.value)}
+                        className="text-xs border border-amber-200 rounded-md px-2 py-1.5 bg-white"
+                      >
+                        {['Corolla Cross', 'RAV4', 'Camry', 'Yaris Cross', 'Land Cruiser 300'].map((m) => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={manualYear}
+                        onChange={(e) => setManualYear(e.target.value)}
+                        className="text-xs border border-amber-200 rounded-md px-2 py-1.5 bg-white"
+                      >
+                        {['2021', '2022', '2023'].map((y) => (
+                          <option key={y} value={y}>{y}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setVinFailed((v) => !v)}
+                  className="w-full text-[11px] font-bold text-slate-500 hover:text-navy border border-slate-200 rounded-lg py-1.5"
+                >
+                  {vinFailed ? t('reception.vin.restore') : t('reception.vin.simulate')}
+                </button>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-500 flex items-center gap-1">
                     <Gauge className="w-3 h-3" /> {t('vehicle.mileage')}

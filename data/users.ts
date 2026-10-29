@@ -90,6 +90,14 @@ export function getUser(id: string): AppUser | undefined {
 
 export function canAccessPath(role: Role, pathname: string): boolean {
   if (pathname.startsWith('/admin/recommendations')) return role === 'cmc';
+  if (pathname.startsWith('/admin/content')) return role === 'cmc';
+  if (pathname.startsWith('/admin/governance')) return role === 'cmc';
+  if (pathname.startsWith('/admin/prompts')) return role === 'cmc';
+  if (pathname.startsWith('/admin/quality')) return role === 'cmc';
+  if (pathname.startsWith('/admin/data-ops')) return role === 'cmc';
+  if (pathname.startsWith('/admin/extract')) return role === 'cmc';
+  if (pathname.startsWith('/admin/platform')) return role === 'cmc';
+  if (pathname.startsWith('/admin/review')) return role === 'cmc' || role === 'dealer-admin';
   if (pathname.startsWith('/admin/knowledge')) return true;
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     return role === 'cmc' || role === 'dealer-admin';
@@ -100,5 +108,13 @@ export function canAccessPath(role: Role, pathname: string): boolean {
 export const ADMIN_NAV: { href: string; minRole: Role }[] = [
   { href: '/admin', minRole: 'dealer-admin' },
   { href: '/admin/knowledge', minRole: 'technician' },
+  { href: '/admin/content', minRole: 'cmc' },
+  { href: '/admin/review', minRole: 'dealer-admin' },
   { href: '/admin/recommendations', minRole: 'cmc' },
+  { href: '/admin/governance', minRole: 'cmc' },
+  { href: '/admin/prompts', minRole: 'cmc' },
+  { href: '/admin/quality', minRole: 'cmc' },
+  { href: '/admin/data-ops', minRole: 'cmc' },
+  { href: '/admin/extract', minRole: 'cmc' },
+  { href: '/admin/platform', minRole: 'cmc' },
 ];
