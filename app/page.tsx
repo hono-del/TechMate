@@ -8,8 +8,8 @@ import { WORKFLOW_STEPS } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { UserMenu } from '@/components/common/UserMenu';
-import { Car, AlertCircle, Clock, User, ChevronRight, LayoutDashboard, Bell, Sparkles, Search, Settings, BookOpen } from 'lucide-react';
-import { GlobalAISearchModal } from '@/components/knowledge/GlobalAISearchModal';
+import { Car, AlertCircle, Clock, User, ChevronRight, LayoutDashboard, Bell, Sparkles, Search, Settings, BookOpen, Plus, Zap } from 'lucide-react';
+import { openWorkspace } from '@/components/common/WorkspaceChrome';
 import { ManualBrowserCard, ManualBrowserModal } from '@/components/knowledge/ManualBrowser';
 import { LatestNewsModal } from '@/components/common/LatestNewsModal';
 import type { TranslationKey } from '@/lib/translations';
@@ -27,7 +27,6 @@ export default function HomePage() {
   const { lang, toggleLang, t } = useLanguage();
   const { canAccess } = useAuth();
   const [today, setToday] = useState('');
-  const [showAISearch, setShowAISearch] = useState(false);
   const [showManuals, setShowManuals] = useState(false);
   const [showNews, setShowNews] = useState(false);
   const [newsSeen, setNewsSeen] = useState(false);
@@ -58,8 +57,22 @@ export default function HomePage() {
             <BookOpen className="w-3.5 h-3.5" />
             {t('home.manuals')}
           </button>
+          <Link
+            href="/job/new"
+            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            {t('home.new-job')}
+          </Link>
+          <Link
+            href="/tie/submit"
+            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Zap className="w-3.5 h-3.5" />
+            {t('home.submit-tie')}
+          </Link>
           <button
-            onClick={() => setShowAISearch(true)}
+            onClick={() => openWorkspace('ai')}
             className="flex items-center gap-1.5 bg-violet-500 hover:bg-violet-400 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -131,7 +144,7 @@ export default function HomePage() {
         </div>
 
         <button
-          onClick={() => setShowAISearch(true)}
+          onClick={() => openWorkspace('ai')}
           className="w-full mb-8 bg-white border border-violet-200 hover:border-violet-400 hover:shadow-md rounded-2xl px-5 py-4 flex items-center gap-4 text-left transition-all group"
         >
           <div className="w-11 h-11 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-500 group-hover:text-white transition-colors">
@@ -235,7 +248,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-      {showAISearch && <GlobalAISearchModal onClose={() => setShowAISearch(false)} />}
       {showManuals && <ManualBrowserModal onClose={() => setShowManuals(false)} />}
       {showNews && <LatestNewsModal onClose={() => setShowNews(false)} />}
     </div>

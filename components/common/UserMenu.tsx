@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { LogOut, ChevronDown, Building2 } from 'lucide-react';
+import { LogOut, ChevronDown, Building2, Headphones, CircleHelp } from 'lucide-react';
+import { openWorkspace } from '@/components/common/WorkspaceChrome';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import type { Role } from '@/data/users';
@@ -61,6 +62,26 @@ export function UserMenu({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
                 {roleLabel(user.role)}
               </div>
             </div>
+            <button
+              onClick={() => {
+                setOpen(false);
+                openWorkspace('contact');
+              }}
+              className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50"
+            >
+              <Headphones className="w-4 h-4" />
+              {t('chrome.contact')}
+            </button>
+            <button
+              onClick={() => {
+                setOpen(false);
+                openWorkspace('help');
+              }}
+              className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50"
+            >
+              <CircleHelp className="w-4 h-4" />
+              {t('chrome.help')}
+            </button>
             <button
               onClick={() => {
                 setOpen(false);

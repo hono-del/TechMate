@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { getLocalizedJob, getLocalizedKnowledge, getCustomerQuestions } from '@/data/localizedData';
 import { RecommendationCard } from '@/components/knowledge/RecommendationCard';
 import { InfoDrawer } from '@/components/knowledge/InfoDrawer';
+import { openWorkspace } from '@/components/common/WorkspaceChrome';
 import { useLanguage } from '@/context/LanguageContext';
 import { useWorkflow } from '@/context/WorkflowContext';
 import type { KnowledgeItem } from '@/types';
@@ -42,7 +43,6 @@ export default function ReceptionPage() {
     [...new Set(customerQuestions.map(q => q.category))]
   );
   const [drawerItem, setDrawerItem] = useState<KnowledgeItem | null>(null);
-  const [showAISearch, setShowAISearch] = useState(false);
 
   // ── Staged reveal ────────────────────────────────────────────────────────
   const [fetching, setFetching] = useState(false);
@@ -606,7 +606,7 @@ export default function ReceptionPage() {
                           ✦ {t('reception.auto-matched')}: {job.vehicle.model} + DTC {job.dtcs.join(', ')}
                         </span>
                         <button
-                          onClick={() => setShowAISearch(!showAISearch)}
+                          onClick={() => openWorkspace('ai')}
                           className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-brand-blue border border-slate-200 rounded-lg px-3 py-1.5 hover:border-blue-300 transition-colors"
                         >
                           <Search className="w-3.5 h-3.5" />
@@ -614,20 +614,6 @@ export default function ReceptionPage() {
                         </button>
                       </div>
                     </div>
-
-                    {showAISearch && (
-                      <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-4">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-violet-600 text-sm font-bold">✦ {t('ai.search-fallback')}</span>
-                          <span className="text-xs text-violet-500">{t('ai.context-applied')}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          <input type="text" placeholder={t('ai.placeholder')} className="flex-1 text-sm border border-violet-300 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-violet-400" />
-                          <button className="bg-violet-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-violet-700 transition-colors">{t('btn.search')}</button>
-                        </div>
-                        <p className="text-xs text-violet-500 mt-2">✦ {t('ai.disclaimer')}</p>
-                      </div>
-                    )}
 
                     <div className="space-y-4">
                       {warningItems.map(item => (

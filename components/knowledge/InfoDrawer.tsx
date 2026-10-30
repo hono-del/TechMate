@@ -2,6 +2,7 @@
 
 import { X, AlertTriangle, BookOpen } from 'lucide-react';
 import { InfoClassBadge, TypeBadge } from '@/components/common/Badge';
+import { DocWatermark } from '@/components/common/DocWatermark';
 import { useLanguage } from '@/context/LanguageContext';
 import type { KnowledgeItem } from '@/types';
 
@@ -17,11 +18,12 @@ export function InfoDrawer({ item, onClose, citedPage }: InfoDrawerProps) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-[60] backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" onClick={onClose} />
 
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl z-[70] flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-full max-w-2xl bg-white shadow-2xl z-[105] flex flex-col overflow-hidden">
+        <DocWatermark />
         {/* Header */}
-        <div className="flex items-start gap-3 p-5 border-b border-slate-200 bg-slate-50">
+        <div className="flex items-start gap-3 p-5 border-b border-slate-200 bg-slate-50 relative z-[1]">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap gap-2 mb-2">
               <TypeBadge type={item.type} />
@@ -54,7 +56,7 @@ export function InfoDrawer({ item, onClose, citedPage }: InfoDrawerProps) {
         )}
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto p-5 relative z-[1]">
           {item.content ? (
             <pre className="font-sans text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{item.content}</pre>
           ) : (
@@ -72,7 +74,7 @@ export function InfoDrawer({ item, onClose, citedPage }: InfoDrawerProps) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-200 p-4 bg-slate-50">
+        <div className="border-t border-slate-200 p-4 bg-slate-50 relative z-[1]">
           <div className="flex items-center justify-between">
             <div className="text-xs">
               {item.informationClass === 'oem-official' && (

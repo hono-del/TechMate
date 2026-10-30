@@ -5,7 +5,13 @@ import { CheckCircle2, FlaskConical, Loader2, ShieldAlert, XCircle } from 'lucid
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { useLanguage } from '@/context/LanguageContext';
 
-type Tab = 'eval' | 'audit';
+type Tab = 'eval' | 'audit' | 'usage';
+
+const USAGE = [
+  { user: 'Kenji Yamamoto', at: '2026-10-30 09:14', model: 'Corolla Cross', year: '2022', system: 'Engine / Exhaust', fault: 'Recurring DTC', chapter: 'SM §EC-4 p.12', follow: '2 follow-ups' },
+  { user: 'Kenji Yamamoto', at: '2026-10-30 09:22', model: 'Corolla Cross', year: '2022', system: 'Engine / Exhaust', fault: 'P0420', chapter: 'TIE-2023-214', follow: 'Asked torque' },
+  { user: 'Yuki Tanaka', at: '2026-10-29 16:03', model: 'RAV4', year: '2023', system: 'Audio / HU', fault: 'Connectivity', chapter: 'OM Multimedia', follow: 'None' },
+];
 
 const CASES = [
   { id: 'gs-01', query: 'P0420 after O2 sensor — next step?', expect: 'Sensor / harness first, not catalyst', actual: 'Sensor / harness first', pass: true },
@@ -50,6 +56,7 @@ export default function QualityPage() {
         items={[
           { id: 'eval', label: t('admin.quality.tab.eval') },
           { id: 'audit', label: t('admin.quality.tab.audit') },
+          { id: 'usage', label: t('admin.quality.tab.usage') },
         ]}
       />
 
@@ -111,6 +118,42 @@ export default function QualityPage() {
                         </span>
                       )}
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </>
+      )}
+
+      {tab === 'usage' && (
+        <>
+          <p className="text-sm text-slate-600">{t('admin.usage.subtitle')}</p>
+          <section className="bg-white border border-slate-200 rounded-xl overflow-x-auto">
+            <table className="w-full text-sm min-w-[880px]">
+              <thead className="bg-slate-50 text-[10px] font-bold uppercase text-slate-400 text-left">
+                <tr>
+                  <th className="px-3 py-2">{t('admin.usage.col.user')}</th>
+                  <th className="px-3 py-2">{t('admin.usage.col.at')}</th>
+                  <th className="px-3 py-2">{t('admin.usage.col.model')}</th>
+                  <th className="px-3 py-2">{t('admin.usage.col.year')}</th>
+                  <th className="px-3 py-2">{t('admin.usage.col.system')}</th>
+                  <th className="px-3 py-2">{t('admin.usage.col.fault')}</th>
+                  <th className="px-3 py-2">{t('admin.usage.col.chapter')}</th>
+                  <th className="px-3 py-2">{t('admin.usage.col.follow')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {USAGE.map((r) => (
+                  <tr key={r.at + r.user} className="border-t border-slate-100">
+                    <td className="px-3 py-2.5">{r.user}</td>
+                    <td className="px-3 py-2.5 font-mono text-xs text-slate-500 whitespace-nowrap">{r.at}</td>
+                    <td className="px-3 py-2.5">{r.model}</td>
+                    <td className="px-3 py-2.5">{r.year}</td>
+                    <td className="px-3 py-2.5">{r.system}</td>
+                    <td className="px-3 py-2.5">{r.fault}</td>
+                    <td className="px-3 py-2.5 text-xs">{r.chapter}</td>
+                    <td className="px-3 py-2.5 text-xs text-slate-600">{r.follow}</td>
                   </tr>
                 ))}
               </tbody>

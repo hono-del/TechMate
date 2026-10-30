@@ -98,6 +98,10 @@ export function canAccessPath(role: Role, pathname: string): boolean {
   if (pathname.startsWith('/admin/extract')) return role === 'cmc';
   if (pathname.startsWith('/admin/platform')) return role === 'cmc';
   if (pathname.startsWith('/admin/review')) return role === 'cmc' || role === 'dealer-admin';
+  if (pathname.startsWith('/admin/tie-approvals')) return role === 'cmc' || role === 'dealer-admin';
+  if (pathname.startsWith('/admin/accounts')) return role === 'cmc';
+  if (pathname.startsWith('/admin/feedback')) return role === 'cmc';
+  if (pathname.startsWith('/admin/templates')) return role === 'cmc';
   if (pathname.startsWith('/admin/knowledge')) return true;
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
     return role === 'cmc' || role === 'dealer-admin';
@@ -110,7 +114,11 @@ export const ADMIN_NAV: { href: string; minRole: Role }[] = [
   { href: '/admin/knowledge', minRole: 'technician' },
   { href: '/admin/content', minRole: 'cmc' },
   { href: '/admin/review', minRole: 'dealer-admin' },
+  { href: '/admin/tie-approvals', minRole: 'dealer-admin' },
   { href: '/admin/recommendations', minRole: 'cmc' },
+  { href: '/admin/accounts', minRole: 'cmc' },
+  { href: '/admin/feedback', minRole: 'cmc' },
+  { href: '/admin/templates', minRole: 'cmc' },
   { href: '/admin/governance', minRole: 'cmc' },
   { href: '/admin/prompts', minRole: 'cmc' },
   { href: '/admin/quality', minRole: 'cmc' },

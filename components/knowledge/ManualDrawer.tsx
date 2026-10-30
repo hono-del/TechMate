@@ -1,6 +1,7 @@
 'use client';
 
 import { X, BookOpen, AlertTriangle, CheckCircle2, List, Wrench, FlaskConical } from 'lucide-react';
+import { DocWatermark, RestrictBanner } from '@/components/common/DocWatermark';
 import { useLanguage } from '@/context/LanguageContext';
 import type { ManualRef } from '@/data/localizedData';
 
@@ -22,10 +23,11 @@ export function ManualDrawer({ item, onClose }: ManualDrawerProps) {
       />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-2xl z-50 flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-full max-w-xl bg-white shadow-2xl z-50 flex flex-col overflow-hidden">
+        <DocWatermark />
 
         {/* Header */}
-        <div className="p-5 border-b border-slate-200 bg-blue-50 flex items-start gap-3">
+        <div className="p-5 border-b border-slate-200 bg-blue-50 flex items-start gap-3 relative z-[1]">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
@@ -34,6 +36,7 @@ export function ManualDrawer({ item, onClose }: ManualDrawerProps) {
               <span className="text-xs text-blue-500 font-medium">{item.source}</span>
             </div>
             <h2 className="font-bold text-slate-900 text-base leading-snug">{item.title}</h2>
+            <div className="mt-2"><RestrictBanner /></div>
           </div>
           <button
             onClick={onClose}
@@ -44,7 +47,7 @@ export function ManualDrawer({ item, onClose }: ManualDrawerProps) {
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4 relative z-[1]">
 
           {/* Overview */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
@@ -135,7 +138,7 @@ export function ManualDrawer({ item, onClose }: ManualDrawerProps) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-200 p-4 bg-slate-50">
+        <div className="border-t border-slate-200 p-4 bg-slate-50 relative z-[1]">
           <button
             onClick={onClose}
             className="w-full py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-200 transition-colors"

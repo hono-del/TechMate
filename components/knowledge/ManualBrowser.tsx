@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import {
-  BookOpen, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, FileText, List,
+  BookOpen, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, FileText, List, Sparkles,
 } from 'lucide-react';
+import { DocWatermark, RestrictBanner } from '@/components/common/DocWatermark';
+import { openWorkspace } from '@/components/common/WorkspaceChrome';
 import { useLanguage } from '@/context/LanguageContext';
 import {
   MANUAL_MODELS,
@@ -94,6 +96,16 @@ function PdfViewer({ item, onClose }: { item: ManualCatalogItem; onClose: () => 
           </button>
         </div>
 
+        <button
+          type="button"
+          onClick={() => openWorkspace('ai')}
+          className="flex items-center gap-1.5 bg-violet-500 hover:bg-violet-400 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          {t('chrome.ai')}
+        </button>
+        <RestrictBanner />
+
         <div className="flex items-center gap-1">
           <button
             onClick={() => go(-1)}
@@ -152,7 +164,8 @@ function PdfViewer({ item, onClose }: { item: ManualCatalogItem; onClose: () => 
             }}
           >
             {/* Paper */}
-            <div className="px-12 py-10 flex flex-col min-h-[920px]">
+            <div className="px-12 py-10 flex flex-col min-h-[920px] relative overflow-hidden">
+              <DocWatermark />
               <div className="flex items-center justify-between border-b-2 border-navy pb-3 mb-8">
                 <div>
                   <div className="text-[10px] font-bold tracking-[0.2em] text-navy uppercase">TechMate OEM</div>

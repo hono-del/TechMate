@@ -720,8 +720,8 @@ export function GlobalAISearchModal({ onClose }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed inset-x-0 top-8 mx-auto w-full max-w-4xl bg-white rounded-2xl shadow-2xl z-50 flex flex-col max-h-[calc(100vh-4rem)] animate-slide-up">
+      <div className="fixed inset-0 bg-black/40 z-[90] backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-x-0 top-8 mx-auto w-full max-w-4xl bg-white rounded-2xl shadow-2xl z-[95] flex flex-col max-h-[calc(100vh-4rem)] animate-slide-up">
         <div className="flex items-start justify-between gap-3 px-6 py-4 border-b border-slate-200 bg-violet-50 rounded-t-2xl">
           <div>
             <div className="flex items-center gap-2 text-violet-800 font-bold">
