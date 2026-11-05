@@ -160,6 +160,7 @@ function ContactUsModal({ onClose }: { onClose: () => void }) {
 }
 
 const HELP_KEYS: Record<Role, TranslationKey[]> = {
+  'service-advisor': ['help.tech.1', 'help.tech.2', 'help.tech.3', 'help.tech.4', 'help.tech.5'],
   technician: ['help.tech.1', 'help.tech.2', 'help.tech.3', 'help.tech.4', 'help.tech.5'],
   'dealer-admin': ['help.dealer.1', 'help.dealer.2', 'help.dealer.3', 'help.dealer.4', 'help.dealer.5'],
   cmc: ['help.cmc.1', 'help.cmc.2', 'help.cmc.3', 'help.cmc.4', 'help.cmc.5'],

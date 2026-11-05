@@ -65,11 +65,11 @@ export default function HomePage() {
             {t('home.new-job')}
           </Link>
           <Link
-            href="/tie/submit"
+            href="/tie"
             className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
           >
             <Zap className="w-3.5 h-3.5" />
-            {t('home.submit-tie')}
+            {t('tie.nav.list')}
           </Link>
           <button
             onClick={() => openWorkspace('ai')}

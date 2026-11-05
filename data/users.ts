@@ -1,7 +1,7 @@
 // Mock dealer master (DR-004) and user master (DR-005).
 // Demo only — no real authentication.
 
-export type Role = 'technician' | 'dealer-admin' | 'cmc';
+export type Role = 'technician' | 'service-advisor' | 'dealer-admin' | 'cmc';
 
 export interface Dealer {
   id: string;
@@ -48,6 +48,16 @@ export const DEALERS: Dealer[] = [
 
 export const USERS: AppUser[] = [
   {
+    id: 'u-sa',
+    name: 'Haruka Suzuki',
+    nameJa: '鈴木 はるか',
+    initials: 'HS',
+    role: 'service-advisor',
+    dealerId: 'dl-tokyo',
+    title: 'Service Advisor',
+    titleJa: 'サービスアドバイザー',
+  },
+  {
     id: 'u-tech',
     name: 'Kenji Yamamoto',
     nameJa: '山本 健司',
@@ -89,6 +99,13 @@ export function getUser(id: string): AppUser | undefined {
 }
 
 export function canAccessPath(role: Role, pathname: string): boolean {
+  // SA: reception & job-create only; block diagnosis/repair/admin
+  if (role === 'service-advisor') {
+    if (pathname.startsWith('/admin')) return false;
+    if (pathname.match(/\/job\/[^/]+\/(diagnosis|repair|work-plan)/)) return false;
+    return true;
+  }
+  // Admin-only paths
   if (pathname.startsWith('/admin/recommendations')) return role === 'cmc';
   if (pathname.startsWith('/admin/content')) return role === 'cmc';
   if (pathname.startsWith('/admin/governance')) return role === 'cmc';

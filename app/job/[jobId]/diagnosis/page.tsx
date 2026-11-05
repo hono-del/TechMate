@@ -20,7 +20,7 @@ import {
   Activity, Lightbulb, ListChecks, ScanLine, Wifi,
   TrendingUp, TrendingDown, Minus, MessageSquareDot,
   Car, Gauge, BookOpen, AlertTriangle, ChevronDown,
-  FileText, MessageSquare, ClipboardList,
+  FileText, MessageSquare, ClipboardList, CheckCircle,
 } from 'lucide-react';
 
 export default function DiagnosisPage() {
@@ -46,6 +46,16 @@ export default function DiagnosisPage() {
   // DTC acquisition
   const [dtcAcquired, setDtcAcquired] = useState(false);
   const [scanning, setScanning] = useState(false);
+
+  // Technician notes
+  const [noteSymptoms, setNoteSymptoms] = useState('');
+  const [noteObserve, setNoteObserve] = useState('');
+  const [noteHypothesis, setNoteHypothesis] = useState('');
+  const [noteSaved, setNoteSaved] = useState(false);
+  const saveNotes = () => {
+    setNoteSaved(true);
+    setTimeout(() => setNoteSaved(false), 2500);
+  };
 
   const job = getLocalizedJob(lang);
   const diagnosis = job.diagnosis!;
@@ -160,7 +170,65 @@ export default function DiagnosisPage() {
         </div>
 
       ) : (
-        /* ── AFTER DTC: 3-column layout ─────────────────────────────────────── */
+        /* ── AFTER DTC ──────────────────────────────────────────────────────── */
+        <>
+        {/* ── Technician Memo card ── */}
+        <div className="mb-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-teal-600" />
+                {t('diagnosis.notes.title')}
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">{t('diagnosis.notes.subtitle')}</p>
+            </div>
+            <button
+              onClick={saveNotes}
+              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all ${
+                noteSaved
+                  ? 'bg-green-100 text-green-700 border border-green-300'
+                  : 'bg-teal-600 hover:bg-teal-700 text-white'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {noteSaved ? t('diagnosis.notes.saved') : t('diagnosis.notes.save')}
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <label className="block text-xs font-bold uppercase text-slate-400">
+              {t('diagnosis.notes.symptoms')}
+              <textarea
+                value={noteSymptoms}
+                onChange={e => setNoteSymptoms(e.target.value)}
+                placeholder={t('diagnosis.notes.symptoms.ph')}
+                rows={3}
+                className="mt-1 w-full text-sm font-normal border border-slate-200 rounded-lg px-3 py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-teal-400"
+              />
+            </label>
+            <label className="block text-xs font-bold uppercase text-slate-400">
+              {t('diagnosis.notes.observe')}
+              <textarea
+                value={noteObserve}
+                onChange={e => setNoteObserve(e.target.value)}
+                placeholder={t('diagnosis.notes.observe.ph')}
+                rows={3}
+                className="mt-1 w-full text-sm font-normal border border-slate-200 rounded-lg px-3 py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-teal-400"
+              />
+            </label>
+            <label className="block text-xs font-bold uppercase text-slate-400">
+              {t('diagnosis.notes.hypothesis')}
+              <textarea
+                value={noteHypothesis}
+                onChange={e => setNoteHypothesis(e.target.value)}
+                placeholder={t('diagnosis.notes.hypothesis.ph')}
+                rows={3}
+                className="mt-1 w-full text-sm font-normal border border-slate-200 rounded-lg px-3 py-2 leading-relaxed focus:outline-none focus:ring-2 focus:ring-teal-400"
+              />
+            </label>
+          </div>
+        </div>
+
+        {/* ── 3-column layout ─────────────────────────────────────────────── */}
         <div className="grid grid-cols-12 gap-5 items-start">
 
           {/* ════════════════════════════════════════════════════════════════
@@ -521,6 +589,7 @@ export default function DiagnosisPage() {
           </div>
 
         </div>
+        </>
       )}
 
       {/* ── CTA Footer ────────────────────────────────────────────────────────── */}

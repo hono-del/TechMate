@@ -1,18 +1,20 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Building2, Globe, Shield, Wrench, UserCog, Landmark } from 'lucide-react';
+import { Building2, Globe, Shield, Wrench, UserCog, Landmark, ClipboardList } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { USERS, getDealer, type Role } from '@/data/users';
 
 const ROLE_ICON: Record<Role, typeof Wrench> = {
+  'service-advisor': ClipboardList,
   technician: Wrench,
   'dealer-admin': UserCog,
   cmc: Landmark,
 };
 
 const ROLE_ACCENT: Record<Role, string> = {
+  'service-advisor': 'bg-orange-500',
   technician: 'bg-brand-blue',
   'dealer-admin': 'bg-teal',
   cmc: 'bg-violet-600',
@@ -24,12 +26,14 @@ export default function LoginPage() {
   const { lang, toggleLang, t } = useLanguage();
 
   const roleLabel = (role: Role) => {
+    if (role === 'service-advisor') return t('auth.role.service-advisor');
     if (role === 'technician') return t('auth.role.technician');
     if (role === 'dealer-admin') return t('auth.role.dealer-admin');
     return t('auth.role.cmc');
   };
 
   const roleScope = (role: Role) => {
+    if (role === 'service-advisor') return t('auth.scope.service-advisor');
     if (role === 'technician') return t('auth.scope.technician');
     if (role === 'dealer-admin') return t('auth.scope.dealer-admin');
     return t('auth.scope.cmc');
