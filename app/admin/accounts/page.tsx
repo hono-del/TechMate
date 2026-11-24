@@ -25,7 +25,7 @@ export default function AccountsPage() {
       role: u.role,
       dealer: u.dealerId ? (DEALERS.find((d) => d.id === u.dealerId)?.[lang === 'ja' ? 'nameJa' : 'name'] ?? '—') : t('auth.dealer.all'),
       lastLogin: '2026-10-30 09:02',
-      searches: u.role === 'technician' ? 86 : u.role === 'cmc' ? 12 : 24,
+      searches: u.role === 'technician' ? 86 : u.role === 'system-admin' ? 12 : 24,
       status: 'active',
     })),
     ...EXTRA.map((u) => ({ ...u, name: lang === 'ja' ? u.nameJa : u.name })),
@@ -90,8 +90,11 @@ export default function AccountsPage() {
               <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('acct.name.ph')} className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2" />
               <select value={role} onChange={(e) => setRole(e.target.value as Role)} className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2">
                 <option value="technician">{t('auth.role.technician')}</option>
+                <option value="service-advisor">{t('auth.role.service-advisor')}</option>
+                <option value="technician-manager">{t('auth.role.technician-manager')}</option>
                 <option value="dealer-admin">{t('auth.role.dealer-admin')}</option>
-                <option value="cmc">{t('auth.role.cmc')}</option>
+                <option value="manufacturer-approver">{t('auth.role.manufacturer-approver')}</option>
+                <option value="system-admin">{t('auth.role.system-admin')}</option>
               </select>
               <button
                 type="button"

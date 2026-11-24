@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { ChevronDown, ChevronUp, Car, AlertCircle, Clock, User, Wrench } from 'lucide-react';
 import type { Job } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
@@ -8,9 +9,12 @@ import { getLocalizedJob } from '@/data/localizedData';
 
 export function ContextHeader({ job: _job }: { job: Job }) {
   const [expanded, setExpanded] = useState(false);
+  const pathname = usePathname();
   const { lang, toggleLang, t } = useLanguage();
   // Use localized job data for translatable fields
   const job = getLocalizedJob(lang);
+  // Hide DTC until Optional scan on Diagnosis; reception also has no code yet.
+  const showDtc = !pathname?.includes('/reception') && !pathname?.includes('/diagnosis');
 
   return (
     <div className="bg-navy text-white shadow-lg">
@@ -53,8 +57,8 @@ export function ContextHeader({ job: _job }: { job: Job }) {
 
         <div className="w-px h-8 bg-blue-800 hidden lg:block" />
 
-        {/* DTC */}
-        {job.dtcs.length > 0 && (
+        {/* DTC — not before diagnosis */}
+        {showDtc && job.dtcs.length > 0 && (
           <>
             <div className="flex-shrink-0">
               <div className="text-xs text-blue-300 font-medium uppercase tracking-wide">{t('header.dtc')}</div>

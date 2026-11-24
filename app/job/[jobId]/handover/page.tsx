@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getLocalizedExplanationNote, getLocalizedJob } from '@/data/localizedData';
+import { getReview, writeReview, type JobReview } from '@/data/jobReview';
+import { canCompleteCustomerHandover } from '@/data/users';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   Printer, Download, Mail, Smartphone, CheckCircle2,
   Edit3, Star, Sparkles, Loader2, ArrowRight,
@@ -17,28 +20,43 @@ type Level = 'simple' | 'standard' | 'detailed';
 export default function HandoverPage() {
   const router = useRouter();
   const params = useParams();
+  const jobId = params.jobId as string;
   const { t, lang } = useLanguage();
+  const { user } = useAuth();
+  const canComplete = user ? canCompleteCustomerHandover(user.role) : false;
   const [note, setNote] = useState(() => getLocalizedExplanationNote(lang));
   const [editing, setEditing] = useState<string | null>(null);
   const [jobCompleted, setJobCompleted] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
   const [level, setLevel] = useState<Level>('standard');
+  const [review, setReview] = useState<JobReview>({ status: 'draft', techComment: '', saComment: '', note: null });
+  const [saComment, setSaComment] = useState('');
 
   const job = getLocalizedJob(lang);
 
-  // 言語切替時にnote・phaseをリセット
   useEffect(() => {
-    setNote(getLocalizedExplanationNote(lang));
-    setPhase('idle');
+    const r = getReview(jobId);
+    setReview(r);
+    setSaComment(r.saComment);
+    if (r.note) {
+      setNote(r.note);
+      setPhase('generated');
+    } else {
+      setNote(getLocalizedExplanationNote(lang));
+      setPhase('idle');
+    }
     setEditing(null);
-  }, [lang]);
+  }, [jobId, lang]);
 
   const handleGenerate = () => {
     setPhase('generating');
     setTimeout(() => {
+      const draft = getLocalizedExplanationNote(lang);
+      setNote(draft);
+      persistReview(draft, saComment, review.status === 'draft' ? 'draft' : review.status);
       setPhase('generated');
-      setLevel('simple'); // 顧客プロファイルに基づきAI推奨レベルを自動選択
+      setLevel('simple');
     }, 1400);
   };
 
@@ -47,9 +65,28 @@ export default function HandoverPage() {
     setEditValue(value);
   };
 
+  const persistReview = (nextNote = note, nextSa = saComment, status = review.status) => {
+    const prev = getReview(jobId);
+    const next: JobReview = {
+      status,
+      techComment: prev.techComment,
+      saComment: nextSa,
+      note: nextNote,
+    };
+    writeReview(jobId, next);
+    setReview(next);
+  };
+
   const saveEdit = (field: string) => {
-    setNote(prev => ({ ...prev, [field]: editValue }));
+    const next = { ...note, [field]: editValue };
+    setNote(next);
+    persistReview(next, saComment);
     setEditing(null);
+  };
+
+  const handleCompleteJob = () => {
+    persistReview(note, saComment, 'reviewed');
+    setJobCompleted(true);
   };
 
   // ── Information Chain ──────────────────────────────────────────────────────
@@ -221,6 +258,31 @@ export default function HandoverPage() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
 
+      {/* ── Review status ──────────────────────────────────────────────── */}
+      <div className={`mb-4 rounded-2xl border-2 p-4 flex items-center justify-between gap-4 ${
+        review.status === 'submitted' ? 'bg-amber-50 border-amber-300' :
+        review.status === 'reviewed' ? 'bg-green-50 border-green-300' :
+        'bg-slate-50 border-slate-200'
+      }`}>
+        <div>
+          <div className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-1">{t('handover.review.title')}</div>
+          <div className="text-sm font-semibold text-slate-800">
+            {t(`handover.review.status.${review.status}` as 'handover.review.status.draft' | 'handover.review.status.submitted' | 'handover.review.status.reviewed')}
+          </div>
+          {!canComplete && (
+            <p className="text-xs text-slate-600 mt-1">{t('handover.cta-blocked')}</p>
+          )}
+        </div>
+        {!canComplete && review.status !== 'submitted' && review.status !== 'reviewed' && (
+          <button
+            onClick={() => router.push(`/job/${jobId}/explanation-note`)}
+            className="flex-shrink-0 flex items-center gap-2 bg-violet-600 text-white text-sm font-semibold px-4 py-2 rounded-xl hover:bg-violet-700"
+          >
+            {t('handover.go-note')}
+          </button>
+        )}
+      </div>
+
       {/* ── Information Chain Banner ─────────────────────────────────────── */}
       <div className="mb-6 bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
         <div className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-4 flex items-center gap-2">
@@ -261,6 +323,27 @@ export default function HandoverPage() {
 
         {/* ── Left Sidebar ─────────────────────────────────────────────────── */}
         <div className="col-span-1 space-y-4">
+
+          {/* Review comments */}
+          <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <h2 className="text-sm font-bold text-slate-800 mb-3">{t('handover.review.title')}</h2>
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">{t('handover.review.tech-comment')}</div>
+            <p className="text-sm text-slate-700 bg-slate-50 border border-slate-100 rounded-lg p-3 min-h-[48px] mb-4">
+              {review.techComment || '—'}
+            </p>
+            {canComplete && (
+              <>
+                <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">{t('handover.review.sa-comment')}</div>
+                <textarea
+                  value={saComment}
+                  onChange={e => setSaComment(e.target.value)}
+                  onBlur={() => persistReview(note, saComment)}
+                  placeholder={t('handover.review.sa-ph')}
+                  className="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 min-h-[72px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </>
+            )}
+          </section>
 
           {/* SA Suggested Explanation */}
           <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
@@ -491,12 +574,14 @@ export default function HandoverPage() {
                           {field.icon}
                         </span>
                         <span className="text-sm font-bold text-slate-700">{t(field.labelKey)}</span>
-                        <button
-                          onClick={() => startEdit(field.key, note[field.key as keyof typeof note])}
-                          className="ml-auto p-1 rounded hover:bg-white/50 text-slate-400 hover:text-slate-700 transition-colors"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
+                        {canComplete && (
+                          <button
+                            onClick={() => startEdit(field.key, note[field.key as keyof typeof note])}
+                            className="ml-auto p-1 rounded hover:bg-white/50 text-slate-400 hover:text-slate-700 transition-colors"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                       {editing === field.key ? (
                         <div className="space-y-2">
@@ -609,7 +694,13 @@ export default function HandoverPage() {
         )}
 
         <div className="px-6 py-4 flex items-center justify-between">
-          {phase !== 'generated' ? (
+          {!canComplete ? (
+            <div className="text-sm text-slate-500">
+              {review.status === 'submitted' || review.status === 'reviewed'
+                ? t('handover.cta-waiting')
+                : t('handover.cta-need-note')}
+            </div>
+          ) : phase !== 'generated' ? (
             <div className="text-sm text-slate-500">
               {lang === 'ja'
                 ? '「顧客説明書を生成」を押して引渡し準備を完了してください'
@@ -618,18 +709,28 @@ export default function HandoverPage() {
           ) : (
             <div className="text-sm text-slate-500">{t('handover.cta-label')}</div>
           )}
-          <button
-            onClick={() => setJobCompleted(true)}
-            disabled={phase !== 'generated'}
-            className={`flex items-center gap-2 font-semibold px-6 py-3 rounded-xl transition-colors shadow-md ${
-              phase === 'generated'
-                ? 'bg-verified text-white hover:bg-green-700'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            {t('handover.cta')}
-          </button>
+          {canComplete ? (
+            <button
+              onClick={handleCompleteJob}
+              disabled={phase !== 'generated'}
+              className={`flex items-center gap-2 font-semibold px-6 py-3 rounded-xl transition-colors shadow-md ${
+                phase === 'generated'
+                  ? 'bg-verified text-white hover:bg-green-700'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {t('handover.cta')}
+            </button>
+          ) : (
+            <button
+              disabled
+              className="flex items-center gap-2 font-semibold px-6 py-3 rounded-xl bg-slate-200 text-slate-400 cursor-not-allowed shadow-md"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              {t('handover.cta')}
+            </button>
+          )}
         </div>
       </div>
 

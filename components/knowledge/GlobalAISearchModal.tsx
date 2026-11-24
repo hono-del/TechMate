@@ -686,6 +686,7 @@ export function GlobalAISearchModal({ onClose }: Props) {
   const chips: { key: TranslationKey; q: string; opts?: { model: string; year: string; docTypes: DocKind[] } }[] =
     lang === 'ja'
       ? [
+          { key: 'aisearch.chip.dtc', q: 'P0420' },
           { key: 'aisearch.chip.lc', q: 'P420', opts: lcStoryOpts },
           { key: 'aisearch.chip.torque', q: 'O2センサー トルク' },
           { key: 'aisearch.chip.corr', q: 'コネクタ腐食' },
@@ -693,6 +694,7 @@ export function GlobalAISearchModal({ onClose }: Props) {
           { key: 'aisearch.chip.refuse', q: 'P9999 ターボウェイストゲート' },
         ]
       : [
+          { key: 'aisearch.chip.dtc', q: 'P0420' },
           { key: 'aisearch.chip.lc', q: 'P420', opts: lcStoryOpts },
           { key: 'aisearch.chip.torque', q: 'O2 sensor torque' },
           { key: 'aisearch.chip.corr', q: 'connector corrosion' },
@@ -750,6 +752,7 @@ export function GlobalAISearchModal({ onClose }: Props) {
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder={t('home.ai-search.placeholder')}
+                aria-label={t('aisearch.subtitle')}
                 className="w-full text-sm border border-violet-300 rounded-xl pl-9 pr-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-violet-400"
               />
             </div>
@@ -841,9 +844,12 @@ export function GlobalAISearchModal({ onClose }: Props) {
 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           {mode === 'idle' && (
-            <div className="text-center py-10 text-sm text-slate-500">
+            <div className="text-center py-8 text-sm text-slate-500 max-w-lg mx-auto">
               <Lightbulb className="w-8 h-8 text-violet-300 mx-auto mb-3" />
-              {t('aisearch.empty')}
+              <p>{t('aisearch.empty')}</p>
+              <p className="mt-3 text-xs text-violet-700 bg-violet-50 border border-violet-100 rounded-lg px-3 py-2">
+                {t('aisearch.complement')}
+              </p>
             </div>
           )}
 
@@ -910,6 +916,7 @@ export function GlobalAISearchModal({ onClose }: Props) {
               <section className="bg-violet-50 border border-violet-200 rounded-2xl p-4">
                 <div className="text-xs font-bold text-violet-600 uppercase tracking-wide mb-2">✦ {t('aisearch.ai-answer')}</div>
                 <p className="text-sm text-slate-800 leading-relaxed">{answer.finding}</p>
+                <p className="text-[11px] text-violet-700 mt-3">{t('aisearch.complement')}</p>
                 {sources.length > 0 && (
                   <div className="mt-3">
                     <div className="text-xs font-bold text-violet-700 mb-2">{t('aisearch.sources')}</div>

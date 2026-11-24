@@ -38,6 +38,7 @@ const NAV_HREFS: { href: string; key: TranslationKey; icon: typeof LayoutDashboa
   { href: '/admin/content', key: 'admin.nav.content', icon: Tags },
   { href: '/admin/review', key: 'admin.nav.review', icon: ClipboardCheck },
   { href: '/admin/tie-approvals', key: 'admin.nav.tieq', icon: BadgeCheck },
+  { href: '/admin/tie-manufacturer', key: 'admin.nav.tie-mfr', icon: BadgeCheck },
   { href: '/admin/recommendations', key: 'admin.nav.recs', icon: BarChart3 },
   { href: '/admin/accounts', key: 'admin.nav.accounts', icon: UserCog },
   { href: '/admin/feedback', key: 'admin.nav.feedback', icon: Inbox },
@@ -55,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { lang, toggleLang, t } = useLanguage();
   const { user, dealer, canAccess } = useAuth();
   const [mounted, setMounted] = useState(false);
-  const isCmc = user?.role === 'cmc';
+  const isCmc = user?.role === 'system-admin';
 
   useEffect(() => { setMounted(true); }, []);
 

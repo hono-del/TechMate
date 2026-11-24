@@ -1,7 +1,13 @@
 // Mock dealer master (DR-004) and user master (DR-005).
 // Demo only — no real authentication.
 
-export type Role = 'technician' | 'service-advisor' | 'dealer-admin' | 'cmc';
+export type Role =
+  | 'system-admin'
+  | 'dealer-admin'
+  | 'manufacturer-approver'
+  | 'service-advisor'
+  | 'technician'
+  | 'technician-manager';
 
 export interface Dealer {
   id: string;
@@ -48,6 +54,36 @@ export const DEALERS: Dealer[] = [
 
 export const USERS: AppUser[] = [
   {
+    id: 'u-cmc',
+    name: 'A. Chen',
+    nameJa: '陳 安',
+    initials: 'AC',
+    role: 'system-admin',
+    dealerId: null,
+    title: 'System Administrator',
+    titleJa: 'システム管理者',
+  },
+  {
+    id: 'u-admin',
+    name: 'Mika Sato',
+    nameJa: '佐藤 美香',
+    initials: 'MS',
+    role: 'dealer-admin',
+    dealerId: 'dl-tokyo',
+    title: 'Dealer Administrator',
+    titleJa: 'ディーラー管理者',
+  },
+  {
+    id: 'u-mfr',
+    name: 'David Park',
+    nameJa: '朴 大衛',
+    initials: 'DP',
+    role: 'manufacturer-approver',
+    dealerId: null,
+    title: 'Manufacturer Approver',
+    titleJa: 'メーカー承認者',
+  },
+  {
     id: 'u-sa',
     name: 'Haruka Suzuki',
     nameJa: '鈴木 はるか',
@@ -68,24 +104,14 @@ export const USERS: AppUser[] = [
     titleJa: 'シニアテクニシャン',
   },
   {
-    id: 'u-admin',
-    name: 'Mika Sato',
-    nameJa: '佐藤 美香',
-    initials: 'MS',
-    role: 'dealer-admin',
+    id: 'u-tm',
+    name: 'Ryo Nakamura',
+    nameJa: '中村 涼',
+    initials: 'RN',
+    role: 'technician-manager',
     dealerId: 'dl-tokyo',
-    title: 'Service Manager',
-    titleJa: 'サービスマネージャー',
-  },
-  {
-    id: 'u-cmc',
-    name: 'A. Chen',
-    nameJa: '陳 安',
-    initials: 'AC',
-    role: 'cmc',
-    dealerId: null,
-    title: 'CMC Technical Support',
-    titleJa: 'CMC テクニカルサポート',
+    title: 'Technician Manager',
+    titleJa: 'テクニシャンマネージャー',
   },
 ];
 
@@ -98,30 +124,72 @@ export function getUser(id: string): AppUser | undefined {
   return USERS.find(u => u.id === id);
 }
 
+export function getTechnicians(): AppUser[] {
+  return USERS.filter(u => u.role === 'technician');
+}
+
+export function canAssignJobs(role: Role): boolean {
+  return role === 'dealer-admin' || role === 'technician-manager' || role === 'system-admin';
+}
+
+/** SA / Admin complete customer handover. Technician work complete is a different step. */
+export function canCompleteCustomerHandover(role: Role): boolean {
+  return (
+    role === 'service-advisor' ||
+    role === 'dealer-admin' ||
+    role === 'technician-manager' ||
+    role === 'system-admin'
+  );
+}
+
+export function isSystemAdmin(role: Role): boolean {
+  return role === 'system-admin';
+}
+
 export function canAccessPath(role: Role, pathname: string): boolean {
-  // SA: reception & job-create only; block diagnosis/repair/admin
   if (role === 'service-advisor') {
     if (pathname.startsWith('/admin')) return false;
-    if (pathname.match(/\/job\/[^/]+\/(diagnosis|repair|work-plan)/)) return false;
+    if (pathname.match(/\/job\/[^/]+\/(diagnosis|repair|work-plan|check-verify)/)) return false;
     return true;
   }
-  // Admin-only paths
-  if (pathname.startsWith('/admin/recommendations')) return role === 'cmc';
-  if (pathname.startsWith('/admin/content')) return role === 'cmc';
-  if (pathname.startsWith('/admin/governance')) return role === 'cmc';
-  if (pathname.startsWith('/admin/prompts')) return role === 'cmc';
-  if (pathname.startsWith('/admin/quality')) return role === 'cmc';
-  if (pathname.startsWith('/admin/data-ops')) return role === 'cmc';
-  if (pathname.startsWith('/admin/extract')) return role === 'cmc';
-  if (pathname.startsWith('/admin/platform')) return role === 'cmc';
-  if (pathname.startsWith('/admin/review')) return role === 'cmc' || role === 'dealer-admin';
-  if (pathname.startsWith('/admin/tie-approvals')) return role === 'cmc' || role === 'dealer-admin';
-  if (pathname.startsWith('/admin/accounts')) return role === 'cmc';
-  if (pathname.startsWith('/admin/feedback')) return role === 'cmc';
-  if (pathname.startsWith('/admin/templates')) return role === 'cmc';
+
+  if (role === 'technician') {
+    if (pathname.match(/\/job\/[^/]+\/reception/)) return false;
+    if (pathname.startsWith('/admin/knowledge')) return true;
+    if (pathname.startsWith('/admin')) return false;
+    return true;
+  }
+
+  if (role === 'manufacturer-approver') {
+    if (pathname.startsWith('/admin/tie-manufacturer')) return true;
+    if (pathname.startsWith('/admin/tie-approvals')) return true;
+    if (pathname.startsWith('/admin')) return false;
+    return true;
+  }
+
+  if (pathname.startsWith('/admin/recommendations')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/content')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/governance')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/prompts')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/quality')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/data-ops')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/extract')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/platform')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/review')) {
+    return isSystemAdmin(role) || role === 'dealer-admin' || role === 'technician-manager';
+  }
+  if (pathname.startsWith('/admin/tie-approvals')) {
+    return isSystemAdmin(role) || role === 'dealer-admin' || role === 'technician-manager';
+  }
+  if (pathname.startsWith('/admin/tie-manufacturer')) {
+    return isSystemAdmin(role);
+  }
+  if (pathname.startsWith('/admin/accounts')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/feedback')) return isSystemAdmin(role);
+  if (pathname.startsWith('/admin/templates')) return isSystemAdmin(role);
   if (pathname.startsWith('/admin/knowledge')) return true;
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    return role === 'cmc' || role === 'dealer-admin';
+    return isSystemAdmin(role) || role === 'dealer-admin' || role === 'technician-manager';
   }
   return true;
 }
@@ -129,17 +197,18 @@ export function canAccessPath(role: Role, pathname: string): boolean {
 export const ADMIN_NAV: { href: string; minRole: Role }[] = [
   { href: '/admin', minRole: 'dealer-admin' },
   { href: '/admin/knowledge', minRole: 'technician' },
-  { href: '/admin/content', minRole: 'cmc' },
+  { href: '/admin/content', minRole: 'system-admin' },
   { href: '/admin/review', minRole: 'dealer-admin' },
   { href: '/admin/tie-approvals', minRole: 'dealer-admin' },
-  { href: '/admin/recommendations', minRole: 'cmc' },
-  { href: '/admin/accounts', minRole: 'cmc' },
-  { href: '/admin/feedback', minRole: 'cmc' },
-  { href: '/admin/templates', minRole: 'cmc' },
-  { href: '/admin/governance', minRole: 'cmc' },
-  { href: '/admin/prompts', minRole: 'cmc' },
-  { href: '/admin/quality', minRole: 'cmc' },
-  { href: '/admin/data-ops', minRole: 'cmc' },
-  { href: '/admin/extract', minRole: 'cmc' },
-  { href: '/admin/platform', minRole: 'cmc' },
+  { href: '/admin/tie-manufacturer', minRole: 'system-admin' },
+  { href: '/admin/recommendations', minRole: 'system-admin' },
+  { href: '/admin/accounts', minRole: 'system-admin' },
+  { href: '/admin/feedback', minRole: 'system-admin' },
+  { href: '/admin/templates', minRole: 'system-admin' },
+  { href: '/admin/governance', minRole: 'system-admin' },
+  { href: '/admin/prompts', minRole: 'system-admin' },
+  { href: '/admin/quality', minRole: 'system-admin' },
+  { href: '/admin/data-ops', minRole: 'system-admin' },
+  { href: '/admin/extract', minRole: 'system-admin' },
+  { href: '/admin/platform', minRole: 'system-admin' },
 ];

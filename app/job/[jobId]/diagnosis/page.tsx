@@ -17,10 +17,10 @@ import { useWorkflow } from '@/context/WorkflowContext';
 import type { PossibleCause } from '@/types';
 import {
   AlertCircle, ArrowRight, ChevronRight, CheckCircle2,
-  Activity, Lightbulb, ListChecks, ScanLine, Wifi,
+  Activity, Lightbulb, ListChecks, ScanLine,
   TrendingUp, TrendingDown, Minus, MessageSquareDot,
-  Car, Gauge, BookOpen, AlertTriangle, ChevronDown,
-  FileText, MessageSquare, ClipboardList, CheckCircle,
+  BookOpen, AlertTriangle, ChevronDown,
+  FileText, MessageSquare, ClipboardList, Send,
 } from 'lucide-react';
 
 export default function DiagnosisPage() {
@@ -28,10 +28,11 @@ export default function DiagnosisPage() {
   const params = useParams();
   const jobId = params.jobId as string;
   const { t, lang } = useLanguage();
-  const { receptionAnswers } = useWorkflow();
+  const { receptionAnswers, confirmedCauseId, setConfirmedCauseId, returnedFromRepair, setReturnedFromRepair } = useWorkflow();
+  const fromRepair = returnedFromRepair;
 
   // Cause selection
-  const [confirmedCause, setConfirmedCause] = useState<string | null>(null);
+  const [confirmedCause, setConfirmedCause] = useState<string | null>(confirmedCauseId);
   const [expandedCause, setExpandedCause] = useState<string | null>(null);
 
   // Flow step selection
@@ -43,11 +44,12 @@ export default function DiagnosisPage() {
   // Manual drawer
   const [selectedManual, setSelectedManual] = useState<ManualRef | null>(null);
 
-  // DTC acquisition
+  // DTC acquisition (optional scan — manual input is the primary path)
   const [dtcAcquired, setDtcAcquired] = useState(false);
   const [scanning, setScanning] = useState(false);
 
   // Technician notes
+  const [noteDtc, setNoteDtc] = useState('');
   const [noteSymptoms, setNoteSymptoms] = useState('');
   const [noteObserve, setNoteObserve] = useState('');
   const [noteHypothesis, setNoteHypothesis] = useState('');
@@ -55,6 +57,15 @@ export default function DiagnosisPage() {
   const saveNotes = () => {
     setNoteSaved(true);
     setTimeout(() => setNoteSaved(false), 2500);
+  };
+
+  const [chatInput, setChatInput] = useState('');
+  const [chatMsgs, setChatMsgs] = useState<{ role: 'user' | 'ai'; text: string }[]>([]);
+  const sendChat = () => {
+    const q = chatInput.trim();
+    if (!q) return;
+    setChatMsgs(prev => [...prev, { role: 'user', text: q }, { role: 'ai', text: t('diagnosis.chat.reply') }]);
+    setChatInput('');
   };
 
   const job = getLocalizedJob(lang);
@@ -97,9 +108,10 @@ export default function DiagnosisPage() {
     setTimeout(() => {
       setScanning(false);
       setDtcAcquired(true);
+      setNoteDtc('P0420');
       setExpandedCause(sortedCauses[0]?.id ?? null);
-      setSelectedStep(flowSteps[0]?.id ?? null); // auto-select first step
-    }, 1800);
+      setSelectedStep(flowSteps[0]?.id ?? null);
+    }, 800);
   };
 
   const activeStep = flowSteps.find(s => s.id === selectedStep) ?? null;
@@ -109,6 +121,19 @@ export default function DiagnosisPage() {
     <div className="max-w-7xl mx-auto px-6 py-6">
 
       {/* ── Purpose banner ──────────────────────────────────────────────────── */}
+      <div className="sticky top-0 z-20 mb-4 bg-red-50 border border-red-300 rounded-xl p-4 flex items-start gap-3 shadow-sm">
+        <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+        <div className="font-semibold text-red-800 text-sm">{t('diagnosis.warn.top')}</div>
+      </div>
+      {fromRepair && (
+        <div className="mb-4 bg-amber-50 border border-amber-300 rounded-xl p-4 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <div className="font-semibold text-amber-900 text-sm">{t('diagnosis.from-repair.title')}</div>
+            <div className="text-sm text-amber-800 mt-0.5">{t('diagnosis.from-repair.body')}</div>
+          </div>
+        </div>
+      )}
       <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
         <Activity className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <div>
@@ -117,61 +142,6 @@ export default function DiagnosisPage() {
         </div>
       </div>
 
-      {/* ── BEFORE DTC: centered scan panel ──────────────────────────────────── */}
-      {!dtcAcquired ? (
-        <div className="max-w-sm mx-auto">
-          <section className="bg-white rounded-2xl border-2 border-dashed border-blue-300 shadow-sm p-8 text-center">
-            {/* Scan animation */}
-            <div className={`w-20 h-20 mx-auto mb-5 rounded-2xl flex items-center justify-center ${
-              scanning ? 'bg-blue-100 animate-pulse' : 'bg-slate-100'
-            }`}>
-              {scanning
-                ? <Wifi className="w-10 h-10 text-blue-500 animate-bounce" />
-                : <ScanLine className="w-10 h-10 text-slate-400" />
-              }
-            </div>
-
-            {/* Vehicle quick-info */}
-            <div className="mb-5 text-left bg-slate-50 rounded-xl px-4 py-3 space-y-1.5">
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-500 flex items-center gap-1">
-                  <Car className="w-3 h-3" /> {t('vehicle.model')}
-                </span>
-                <span className="font-semibold text-slate-800">{job.vehicle.year} {job.vehicle.model}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-500 flex items-center gap-1">
-                  <Gauge className="w-3 h-3" /> {t('vehicle.mileage')}
-                </span>
-                <span className="font-semibold text-slate-800">
-                  {job.vehicle.mileage.toLocaleString('en-US')} km
-                </span>
-              </div>
-            </div>
-
-            <h3 className="font-bold text-slate-800 text-lg mb-2">{t('dtc.acquire.title')}</h3>
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">{t('dtc.acquire.subtitle')}</p>
-
-            <button
-              onClick={handleGetDTC}
-              disabled={scanning}
-              className={`
-                w-full flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl transition-all text-base
-                ${scanning
-                  ? 'bg-blue-100 text-blue-400 cursor-wait'
-                  : 'bg-brand-blue text-white hover:bg-blue-700 shadow-md hover:shadow-lg active:scale-95'
-                }
-              `}
-            >
-              <ScanLine className={`w-5 h-5 ${scanning ? 'animate-spin' : ''}`} />
-              {scanning ? t('dtc.acquire.scanning') : t('dtc.acquire.btn')}
-            </button>
-          </section>
-        </div>
-
-      ) : (
-        /* ── AFTER DTC ──────────────────────────────────────────────────────── */
-        <>
         {/* ── Technician Memo card ── */}
         <div className="mb-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
@@ -194,7 +164,25 @@ export default function DiagnosisPage() {
               {noteSaved ? t('diagnosis.notes.saved') : t('diagnosis.notes.save')}
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <label className="block text-xs font-bold uppercase text-slate-400">
+              {t('diagnosis.notes.dtc')}
+              <input
+                value={noteDtc}
+                onChange={e => setNoteDtc(e.target.value)}
+                placeholder={t('diagnosis.notes.dtc.ph')}
+                className="mt-1 w-full text-sm font-mono border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-400"
+              />
+              <button
+                type="button"
+                onClick={handleGetDTC}
+                disabled={scanning}
+                className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 hover:text-brand-blue"
+              >
+                <ScanLine className={`w-3 h-3 ${scanning ? 'animate-spin' : ''}`} />
+                {t('diagnosis.scan.optional')}
+              </button>
+            </label>
             <label className="block text-xs font-bold uppercase text-slate-400">
               {t('diagnosis.notes.symptoms')}
               <textarea
@@ -236,7 +224,8 @@ export default function DiagnosisPage() {
           ════════════════════════════════════════════════════════════════ */}
           <div className="col-span-3 space-y-4">
 
-            {/* DTC Overview */}
+            {/* DTC Overview: after Optional scan only */}
+            {dtcAcquired && (
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
               <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                 <AlertCircle className="w-3.5 h-3.5 text-orange-500" />
@@ -246,7 +235,7 @@ export default function DiagnosisPage() {
                 </span>
               </h2>
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 mb-3">
-                <div className="text-2xl font-black text-orange-800 mb-0.5">P0420</div>
+                <div className="text-2xl font-black text-orange-800 mb-0.5">{noteDtc || 'P0420'}</div>
                 <div className="text-xs font-semibold text-orange-700 leading-snug">{t('dtc.p0420.title')}</div>
               </div>
               <div className="text-xs text-slate-500 space-y-1">
@@ -255,6 +244,7 @@ export default function DiagnosisPage() {
                 <div><span className="font-medium text-slate-600">{t('dtc.status')}:</span> {t('dtc.p0420.status')}</div>
               </div>
             </section>
+            )}
 
             {/* Customer Interview Insights */}
             {insights.length > 0 && (
@@ -351,7 +341,12 @@ export default function DiagnosisPage() {
                         <div className="px-3 pb-3 space-y-2">
                           <p className="text-xs text-slate-600 leading-relaxed">{cause.evidence}</p>
                           <button
-                            onClick={() => setConfirmedCause(confirmedCause === cause.id ? null : cause.id)}
+                            onClick={() => {
+                              const next = confirmedCause === cause.id ? null : cause.id;
+                              setConfirmedCause(next);
+                              setConfirmedCauseId(next);
+                              if (next) setReturnedFromRepair(false);
+                            }}
                             className={`
                               w-full text-xs font-semibold px-3 py-2 rounded-lg transition-colors
                               ${confirmedCause === cause.id
@@ -374,6 +369,33 @@ export default function DiagnosisPage() {
                 <span className="flex-shrink-0">✦</span>
                 {t('diagnosis.ai-ranking-note')}
               </p>
+            </section>
+
+            <section className="bg-white rounded-2xl border border-violet-200 shadow-sm p-4">
+              <h2 className="text-xs font-bold text-violet-700 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5" />
+                {t('diagnosis.chat.title')}
+              </h2>
+              <p className="text-[11px] text-slate-500 mb-3">{t('diagnosis.chat.subtitle')}</p>
+              <div className="space-y-2 max-h-40 overflow-y-auto mb-2">
+                {chatMsgs.map((m, i) => (
+                  <div key={i} className={`text-xs rounded-lg px-2.5 py-1.5 ${m.role === 'user' ? 'bg-blue-50 text-blue-800' : 'bg-violet-50 text-violet-800'}`}>
+                    {m.text}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                <input
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); sendChat(); } }}
+                  placeholder={t('diagnosis.chat.ph')}
+                  className="flex-1 text-xs border border-slate-200 rounded-lg px-2 py-1.5"
+                />
+                <button type="button" onClick={sendChat} className="p-1.5 bg-violet-600 text-white rounded-lg">
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </section>
           </div>
 
@@ -589,28 +611,22 @@ export default function DiagnosisPage() {
           </div>
 
         </div>
-        </>
-      )}
 
       {/* ── CTA Footer ────────────────────────────────────────────────────────── */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-4 flex items-center justify-between shadow-lg">
         <div className="text-sm text-slate-500">
-          {!dtcAcquired ? (
-            <span className="text-slate-400">
-              {lang === 'ja' ? 'まずDTCを取得してください' : 'Get DTC first to proceed'}
-            </span>
-          ) : confirmedCause ? (
+          {confirmedCause ? (
             <span className="text-green-700 font-medium">✓ {t('diagnosis.cta-ready')}</span>
           ) : (
             <span>{t('diagnosis.cta-pending')}</span>
           )}
         </div>
         <button
-          onClick={() => router.push(`/job/${jobId}/work-planning`)}
-          disabled={!confirmedCause || !dtcAcquired}
+          onClick={() => router.push(`/job/${jobId}/repair`)}
+          disabled={!confirmedCause}
           className={`
             flex items-center gap-2 font-semibold px-6 py-3 rounded-xl transition-colors shadow-md
-            ${confirmedCause && dtcAcquired
+            ${confirmedCause
               ? 'bg-brand-blue text-white hover:bg-blue-700'
               : 'bg-blue-200 text-blue-400 cursor-not-allowed'}
           `}

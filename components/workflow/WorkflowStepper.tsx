@@ -4,10 +4,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Check, Home, ChevronLeft } from 'lucide-react';
 import { WORKFLOW_STEPS, type WorkflowStep } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import type { TranslationKey } from '@/lib/translations';
 
 const STEP_ORDER: WorkflowStep[] = [
-  'reception', 'diagnosis', 'work-planning', 'repair', 'check-verify', 'handover'
+  'reception', 'diagnosis', 'repair', 'check-verify', 'explanation-note', 'handover'
 ];
 
 const STEP_TRANSLATION_KEYS: Record<WorkflowStep, { label: TranslationKey; short: TranslationKey }> = {
@@ -16,6 +17,7 @@ const STEP_TRANSLATION_KEYS: Record<WorkflowStep, { label: TranslationKey; short
   'work-planning':{ label: 'step.work-planning', short: 'step.planning' },
   'repair':       { label: 'step.repair',       short: 'step.repair' },
   'check-verify': { label: 'step.check-verify', short: 'step.verify' },
+  'explanation-note': { label: 'step.explanation-note', short: 'step.note' },
   'handover':     { label: 'step.handover',     short: 'step.handover' },
 };
 
@@ -23,8 +25,10 @@ export function WorkflowStepper({ jobId }: { jobId: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLanguage();
+  const { user, canAccess } = useAuth();
 
-  const currentSegment = pathname.split('/').pop() ?? 'reception';
+  const currentSegmentRaw = pathname.split('/').pop() ?? 'reception';
+  const currentSegment = currentSegmentRaw === 'work-planning' ? 'repair' : currentSegmentRaw;
   const currentIndex = STEP_ORDER.indexOf(currentSegment as WorkflowStep);
 
   const navigateTo = (step: WorkflowStep) => {
@@ -76,15 +80,19 @@ export function WorkflowStepper({ jobId }: { jobId: string }) {
           const isCompleted = idx < currentIndex;
           const isActive = idx === currentIndex;
           const keys = STEP_TRANSLATION_KEYS[step.id];
+          const allowed = user ? canAccess(`/job/${jobId}/${step.id}`) : true;
 
           return (
             <button
               key={step.id}
-              onClick={() => navigateTo(step.id)}
+              onClick={() => allowed && navigateTo(step.id)}
+              disabled={!allowed}
               className={`
                 relative flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-all
                 border-b-[3px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
-                ${isActive
+                ${!allowed
+                  ? 'border-transparent text-slate-300 cursor-not-allowed'
+                  : isActive
                   ? 'border-brand-blue text-brand-blue bg-blue-50'
                   : isCompleted
                     ? 'border-verified text-verified hover:bg-green-50 cursor-pointer'

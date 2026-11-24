@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   BookOpen, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, FileText, List, Sparkles,
 } from 'lucide-react';
@@ -13,9 +14,19 @@ import {
   yearsForModel,
   getManualPages,
   type ManualCatalogItem,
+  type ManualDocLang,
+  type ManualEdition,
   type ManualKind,
 } from '@/data/manuals';
 import type { TranslationKey } from '@/lib/translations';
+
+const EDITION_KEY: Record<ManualEdition, TranslationKey> = {
+  revision: 'home.manuals.edition.revision',
+  supplement: 'home.manuals.edition.supplement',
+  'spec-before': 'home.manuals.edition.spec-before',
+  'spec-after': 'home.manuals.edition.spec-after',
+  'model-specific': 'home.manuals.edition.model-specific',
+};
 
 const KIND_BADGE: Record<ManualKind, { key: TranslationKey; cls: string }> = {
   om:  { key: 'home.manuals.om',  cls: 'bg-teal-light text-teal' },
@@ -45,15 +56,15 @@ function KindBadge({ kind }: { kind: ManualKind }) {
   );
 }
 
-function PdfViewer({ item, onClose }: { item: ManualCatalogItem; onClose: () => void }) {
-  const { lang, t } = useLanguage();
-  const pages = useMemo(() => getManualPages(item, lang), [item, lang]);
+function PdfViewer({ item, docLang, onClose }: { item: ManualCatalogItem; docLang: ManualDocLang; onClose: () => void }) {
+  const { t } = useLanguage();
+  const pages = useMemo(() => getManualPages(item, docLang), [item, docLang]);
   const [page, setPage] = useState(0);
   const [zoom, setZoom] = useState(100);
   const [tocOpen, setTocOpen] = useState(true);
   const current = pages[page];
 
-  useEffect(() => { setPage(0); }, [item.id, lang]);
+  useEffect(() => { setPage(0); }, [item.id, docLang]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -82,7 +93,7 @@ function PdfViewer({ item, onClose }: { item: ManualCatalogItem; onClose: () => 
         <div className="min-w-0 flex-1">
           <div className="text-white text-sm font-semibold truncate">{item.fileName}</div>
           <div className="text-[10px] text-white/50 truncate">
-            {item.model} · {item.year} · {t('home.manuals.rev')} {item.revision} · {t('pdf.demo-note')}
+            {item.model} · {item.year} · {t(EDITION_KEY[item.edition])} · {t('home.manuals.rev')} {item.revision} · {t('pdf.demo-note')}
           </div>
         </div>
 
@@ -192,7 +203,7 @@ function PdfViewer({ item, onClose }: { item: ManualCatalogItem; onClose: () => 
               </div>
 
               <div className="mt-10 pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
-                <span>{item.model} {item.year} MY · Rev.{item.revision}</span>
+                <span>{item.applicable.en} · Rev.{item.revision}</span>
                 <span>— {page + 1} —</span>
                 <span>{t('pdf.confidential')}</span>
               </div>
@@ -204,117 +215,160 @@ function PdfViewer({ item, onClose }: { item: ManualCatalogItem; onClose: () => 
   );
 }
 
-export function ManualBrowserCard() {
-  const { t } = useLanguage();
+function ManualPicker({ compact }: { compact?: boolean }) {
+  const { t, lang } = useLanguage();
+  const router = useRouter();
   const [model, setModel] = useState('');
   const [year, setYear] = useState('');
+  const [docLang, setDocLang] = useState<ManualDocLang>('en');
   const [openItem, setOpenItem] = useState<ManualCatalogItem | null>(null);
 
   const years = model ? yearsForModel(model) : [];
   const items = model && year ? manualsFor(model, year) : [];
-
   const selectCls = 'w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue';
+
+  const openHtml = (item: ManualCatalogItem) => {
+    router.push(`/manuals/html/${item.id}?lang=${docLang}`);
+  };
+
+  const editionCls: Record<ManualEdition, string> = {
+    revision: 'bg-slate-100 text-slate-700',
+    supplement: 'bg-amber-50 text-amber-800',
+    'spec-before': 'bg-orange-50 text-orange-800',
+    'spec-after': 'bg-teal-50 text-teal-800',
+    'model-specific': 'bg-violet-50 text-violet-800',
+  };
 
   return (
     <>
-      <div className="w-full mb-8 bg-white border border-blue-200 rounded-2xl px-5 py-4">
-        <div className="flex items-start gap-4 mb-4">
-          <div className="w-11 h-11 rounded-xl bg-blue-100 text-brand-blue flex items-center justify-center flex-shrink-0">
-            <BookOpen className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-slate-900">{t('home.manuals')}</div>
-            <div className="text-xs text-slate-500 mt-0.5">{t('home.manuals.hint')}</div>
-          </div>
-        </div>
+      <div className={`grid grid-cols-1 ${compact ? 'sm:grid-cols-3' : 'sm:grid-cols-3'} gap-3 mb-4`}>
+        <label className="block">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{t('aisearch.filter.model')}</span>
+          <select
+            value={model}
+            onChange={e => { setModel(e.target.value); setYear(''); }}
+            className={`${selectCls} mt-1`}
+          >
+            <option value="">{t('home.manuals.choose-model')}</option>
+            {MANUAL_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{t('aisearch.filter.year')}</span>
+          <select
+            value={year}
+            onChange={e => setYear(e.target.value)}
+            disabled={!model}
+            className={`${selectCls} mt-1 disabled:bg-slate-50 disabled:text-slate-400`}
+          >
+            <option value="">{t('home.manuals.choose-year')}</option>
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{t('home.manuals.lang')}</span>
+          <select
+            value={docLang}
+            onChange={e => setDocLang(e.target.value as ManualDocLang)}
+            className={`${selectCls} mt-1`}
+          >
+            <option value="en">{t('home.manuals.lang.en')}</option>
+            <option value="ja">{t('home.manuals.lang.ja')}</option>
+            <option value="zh">{t('home.manuals.lang.zh')}</option>
+          </select>
+        </label>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          <label className="block">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{t('aisearch.filter.model')}</span>
-            <select
-              value={model}
-              onChange={e => {
-                setModel(e.target.value);
-                setYear('');
-              }}
-              className={`${selectCls} mt-1`}
-            >
-              <option value="">{t('home.manuals.choose-model')}</option>
-              {MANUAL_MODELS.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{t('aisearch.filter.year')}</span>
-            <select
-              value={year}
-              onChange={e => setYear(e.target.value)}
-              disabled={!model}
-              className={`${selectCls} mt-1 disabled:bg-slate-50 disabled:text-slate-400`}
-            >
-              <option value="">{t('home.manuals.choose-year')}</option>
-              {years.map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-          </label>
-        </div>
+      {!model && <p className="text-xs text-slate-400">{t('home.manuals.prompt')}</p>}
+      {model && !year && <p className="text-xs text-slate-400">{t('home.manuals.prompt-year')}</p>}
+      {model && year && items.length === 0 && <p className="text-sm text-slate-500">{t('home.manuals.none')}</p>}
 
-        {!model && (
-          <p className="text-xs text-slate-400">{t('home.manuals.prompt')}</p>
-        )}
-        {model && !year && (
-          <p className="text-xs text-slate-400">{t('home.manuals.prompt-year')}</p>
-        )}
-        {model && year && items.length === 0 && (
-          <p className="text-sm text-slate-500">{t('home.manuals.none')}</p>
-        )}
-        {items.length > 0 && (
-          <div className="space-y-2">
-            {items.map(item => (
-              <button
+      {items.length > 0 && (
+        <div className="space-y-2">
+          {items.map(item => {
+            const hasLang = item.langs.includes(docLang);
+            const applicable = lang === 'ja' ? item.applicable.ja : item.applicable.en;
+            return (
+              <div
                 key={item.id}
-                onClick={() => setOpenItem(item)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:border-brand-blue hover:bg-blue-50/50 transition-colors text-left group"
+                className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl border ${hasLang ? 'border-slate-200' : 'border-slate-100 bg-slate-50'}`}
               >
-                <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center group-hover:bg-blue-100 group-hover:text-brand-blue">
+                <div className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <FileText className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
+                  <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
                     <KindBadge kind={item.kind} />
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${editionCls[item.edition]}`}>
+                      {t(EDITION_KEY[item.edition])}
+                    </span>
                     <span className="text-sm font-semibold text-slate-900 truncate">{t(KIND_FULL[item.kind])}</span>
                   </div>
-                  <div className="text-xs text-slate-400 truncate">
+                  <div className="text-xs text-slate-500 leading-snug">
+                    <span className="font-medium">{t('home.manuals.applicable')}:</span> {applicable}
+                  </div>
+                  <div className="text-xs text-slate-400 truncate mt-0.5">
                     {item.fileName} · {item.pageCount} {t('home.manuals.pages')} · {t('home.manuals.rev')} {item.revision}
                   </div>
                 </div>
-                <span className="text-xs font-bold text-brand-blue whitespace-nowrap">{t('home.manuals.open')}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+                <div className="flex flex-col gap-1.5 flex-shrink-0">
+                  {!hasLang ? (
+                    <span className="text-[11px] text-slate-400">{t('home.manuals.no-lang')}</span>
+                  ) : (
+                    <>
+                      {item.formats.includes('pdf') && (
+                        <button
+                          type="button"
+                          onClick={() => setOpenItem(item)}
+                          className="text-xs font-bold text-brand-blue hover:underline text-right"
+                        >
+                          {t('home.manuals.open')} {t('home.manuals.format.pdf')}
+                        </button>
+                      )}
+                      {item.formats.includes('html') && (
+                        <button
+                          type="button"
+                          onClick={() => openHtml(item)}
+                          className="text-xs font-bold text-teal hover:underline text-right"
+                        >
+                          {t('home.manuals.open')} {t('home.manuals.format.html')}
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      {openItem && <PdfViewer item={openItem} onClose={() => setOpenItem(null)} />}
+      {openItem && <PdfViewer item={openItem} docLang={docLang} onClose={() => setOpenItem(null)} />}
     </>
+  );
+}
+
+export function ManualBrowserCard() {
+  const { t } = useLanguage();
+
+  return (
+    <div className="w-full mb-8 bg-white border border-blue-200 rounded-2xl px-5 py-4">
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-11 h-11 rounded-xl bg-blue-100 text-brand-blue flex items-center justify-center flex-shrink-0">
+          <BookOpen className="w-5 h-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-bold text-slate-900">{t('home.manuals')}</div>
+          <div className="text-xs text-slate-500 mt-0.5">{t('home.manuals.hint')}</div>
+        </div>
+      </div>
+      <ManualPicker />
+    </div>
   );
 }
 
 export function ManualBrowserModal({ onClose }: { onClose: () => void }) {
   const { t } = useLanguage();
-  const [model, setModel] = useState('');
-  const [year, setYear] = useState('');
-  const [openItem, setOpenItem] = useState<ManualCatalogItem | null>(null);
-
-  const years = model ? yearsForModel(model) : [];
-  const items = model && year ? manualsFor(model, year) : [];
-  const selectCls = 'w-full text-sm border border-slate-200 rounded-lg px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-brand-blue';
-
-  if (openItem) {
-    return <PdfViewer item={openItem} onClose={() => setOpenItem(null)} />;
-  }
 
   return (
     <>
@@ -333,45 +387,7 @@ export function ManualBrowserModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
         <div className="px-6 py-5 overflow-y-auto">
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <label className="block">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{t('aisearch.filter.model')}</span>
-              <select value={model} onChange={e => { setModel(e.target.value); setYear(''); }} className={`${selectCls} mt-1`}>
-                <option value="">{t('home.manuals.choose-model')}</option>
-                {MANUAL_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{t('aisearch.filter.year')}</span>
-              <select value={year} onChange={e => setYear(e.target.value)} disabled={!model} className={`${selectCls} mt-1 disabled:bg-slate-50`}>
-                <option value="">{t('home.manuals.choose-year')}</option>
-                {years.map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
-            </label>
-          </div>
-          {items.length > 0 ? (
-            <div className="space-y-2">
-              {items.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setOpenItem(item)}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:border-brand-blue hover:bg-blue-50/50 text-left"
-                >
-                  <FileText className="w-4 h-4 text-slate-400" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <KindBadge kind={item.kind} />
-                      <span className="text-sm font-semibold truncate">{t(KIND_FULL[item.kind])}</span>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-0.5 truncate">{item.fileName} · {item.pageCount} {t('home.manuals.pages')}</div>
-                  </div>
-                  <span className="text-xs font-bold text-brand-blue">{t('home.manuals.open')}</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-slate-400">{model && year ? t('home.manuals.none') : t('home.manuals.prompt')}</p>
-          )}
+          <ManualPicker compact />
         </div>
       </div>
     </>

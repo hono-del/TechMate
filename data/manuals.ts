@@ -1,8 +1,15 @@
-import type { Language } from '@/lib/translations';
-
+export type ManualDocLang = 'en' | 'ja' | 'zh';
 export type ManualKind = 'om' | 'sm' | 'tm' | 'brm' | 'wd' | 'tn';
+export type ManualFormat = 'pdf' | 'html';
+export type ManualEdition =
+  | 'revision'
+  | 'supplement'
+  | 'spec-before'
+  | 'spec-after'
+  | 'model-specific';
 
 export const MANUAL_KIND_ORDER: ManualKind[] = ['om', 'sm', 'tm', 'brm', 'wd', 'tn'];
+export const MANUAL_DOC_LANGS: ManualDocLang[] = ['en', 'ja', 'zh'];
 
 export interface ManualCatalogItem {
   id: string;
@@ -12,6 +19,10 @@ export interface ManualCatalogItem {
   fileName: string;
   pageCount: number;
   revision: string;
+  langs: ManualDocLang[];
+  formats: ManualFormat[];
+  edition: ManualEdition;
+  applicable: { en: string; ja: string };
 }
 
 export interface PdfPage {
@@ -55,17 +66,100 @@ function slugModel(model: string) {
   return model.replace(/\s+/g, '');
 }
 
-export const MANUAL_CATALOG: ManualCatalogItem[] = VEHICLES.flatMap(v =>
-  KIND_FILES.map(k => ({
-    id: `${v.key}-${k.kind}`,
-    model: v.model,
-    year: v.year,
-    kind: k.kind,
-    fileName: `${k.prefix}_${v.code}_${slugModel(v.model)}_${v.year}.pdf`,
-    pageCount: k.pageCount,
-    revision: v.revision,
-  }))
+const BASE_CATALOG: ManualCatalogItem[] = VEHICLES.flatMap(v =>
+  KIND_FILES.map(k => {
+    const formats: ManualFormat[] = k.kind === 'sm' || k.kind === 'tn' ? ['pdf', 'html'] : ['pdf'];
+    return {
+      id: `${v.key}-${k.kind}`,
+      model: v.model,
+      year: v.year,
+      kind: k.kind,
+      fileName: `${k.prefix}_${v.code}_${slugModel(v.model)}_${v.year}.pdf`,
+      pageCount: k.pageCount,
+      revision: v.revision,
+      langs: ['en', 'ja', 'zh'] as ManualDocLang[],
+      formats,
+      edition: (v.revision === 'A' ? 'revision' : 'revision') as ManualEdition,
+      applicable: {
+        en: `${v.model} ${v.year} MY · all grades · Rev. ${v.revision}`,
+        ja: `${v.model} ${v.year} 年式 · 全グレード · 改訂 ${v.revision}`,
+      },
+    };
+  })
 );
+
+const CC_2022_EXTRAS: ManualCatalogItem[] = [
+  {
+    id: 'cc-2022-sm-supp',
+    model: 'Corolla Cross',
+    year: '2022',
+    kind: 'sm',
+    fileName: 'SM_ZVG10_CorollaCross_2022_SUPP.pdf',
+    pageCount: 4,
+    revision: 'B-S1',
+    langs: ['en', 'ja', 'zh'],
+    formats: ['pdf', 'html'],
+    edition: 'supplement',
+    applicable: {
+      en: 'Corolla Cross 2022 MY · Hybrid · supplementary service information (connector lock after road test)',
+      ja: 'Corolla Cross 2022 年式 · ハイブリッド · 補足サービス情報（ロードテスト後のコネクタロック）',
+    },
+  },
+  {
+    id: 'cc-2022-sm-before',
+    model: 'Corolla Cross',
+    year: '2022',
+    kind: 'sm',
+    fileName: 'SM_ZVG10_CorollaCross_2022_PRE.pdf',
+    pageCount: 5,
+    revision: 'A',
+    langs: ['en', 'ja'],
+    formats: ['pdf'],
+    edition: 'spec-before',
+    applicable: {
+      en: 'Corolla Cross 2022 MY · before mid-year spec change (to Jun 2022 / VIN …43000)',
+      ja: 'Corolla Cross 2022 年式 · 年中仕様変更前（2022年6月 / VIN …43000 まで）',
+    },
+  },
+  {
+    id: 'cc-2022-sm-after',
+    model: 'Corolla Cross',
+    year: '2022',
+    kind: 'sm',
+    fileName: 'SM_ZVG10_CorollaCross_2022_POST.pdf',
+    pageCount: 5,
+    revision: 'B',
+    langs: ['en', 'ja', 'zh'],
+    formats: ['pdf', 'html'],
+    edition: 'spec-after',
+    applicable: {
+      en: 'Corolla Cross 2022 MY · after mid-year spec change (from Jul 2022 / VIN …43001)',
+      ja: 'Corolla Cross 2022 年式 · 年中仕様変更後（2022年7月 / VIN …43001 から）',
+    },
+  },
+  {
+    id: 'cc-2022-sm-z',
+    model: 'Corolla Cross',
+    year: '2022',
+    kind: 'sm',
+    fileName: 'SM_ZVG10_CorollaCross_2022_Z.pdf',
+    pageCount: 4,
+    revision: 'B-Z',
+    langs: ['en', 'ja', 'zh'],
+    formats: ['pdf', 'html'],
+    edition: 'model-specific',
+    applicable: {
+      en: 'Corolla Cross 2022 MY · Hybrid Z grade only (high-voltage service plug procedure)',
+      ja: 'Corolla Cross 2022 年式 · ハイブリッド Z グレードのみ（高電圧サービスプラグ手順）',
+    },
+  },
+];
+
+export const MANUAL_CATALOG: ManualCatalogItem[] = [...BASE_CATALOG, ...CC_2022_EXTRAS];
+
+export function getManual(id: string): ManualCatalogItem | undefined {
+  return MANUAL_CATALOG.find(m => m.id === id);
+}
 
 export function yearsForModel(model: string): string[] {
   return [...new Set(MANUAL_CATALOG.filter(m => m.model === model).map(m => m.year))];
@@ -77,20 +171,106 @@ export function manualsFor(model: string, year: string): ManualCatalogItem[] {
     .sort((a, b) => MANUAL_KIND_ORDER.indexOf(a.kind) - MANUAL_KIND_ORDER.indexOf(b.kind));
 }
 
-function ja(lang: Language) {
+function ja(lang: ManualDocLang) {
   return lang === 'ja';
 }
 
-export function getManualPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
-  if (item.kind === 'om') return omPages(item, lang);
-  if (item.kind === 'tm') return tmPages(item, lang);
-  if (item.kind === 'brm') return brmPages(item, lang);
-  if (item.kind === 'wd') return wdPages(item, lang);
-  if (item.kind === 'tn') return tnPages(item, lang);
-  return smPages(item, lang);
+export function getManualPages(item: ManualCatalogItem, lang: ManualDocLang): PdfPage[] {
+  const useLang: ManualDocLang = item.langs.includes(lang) ? lang : (item.langs[0] ?? 'en');
+  if (useLang === 'zh') return zhPages(item);
+  if (item.kind === 'om') return omPages(item, useLang);
+  if (item.kind === 'tm') return tmPages(item, useLang);
+  if (item.kind === 'brm') return brmPages(item, useLang);
+  if (item.kind === 'wd') return wdPages(item, useLang);
+  if (item.kind === 'tn') return tnPages(item, useLang);
+  return smPages(item, useLang);
 }
 
-function smPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
+function zhPages(item: ManualCatalogItem): PdfPage[] {
+  const editionNote =
+    item.edition === 'supplement' ? '补充服务信息' :
+    item.edition === 'spec-before' ? '年中规格变更前' :
+    item.edition === 'spec-after' ? '年中规格变更后' :
+    item.edition === 'model-specific' ? '车型专用追加' :
+    `修订 ${item.revision}`;
+
+  return [
+    {
+      title: '封面',
+      heading: item.kind === 'om' ? '用户手册' : item.kind === 'tn' ? '技术通报' : '维修手册',
+      sections: [{
+        body: [
+          `${item.model}  ·  ${item.year} 年款`,
+          `适用：${item.applicable.en}`,
+          `版本：${editionNote}  /  ${item.fileName}`,
+          '演示用中文内容。请勿用于实车维修。',
+        ],
+      }],
+    },
+    {
+      title: '目录',
+      heading: '目录',
+      sections: [{
+        body: ['1. 适用范围', '2. 安全注意事项', '3. P0420 / 氧传感器要点', '4. 规定值'],
+      }],
+    },
+    {
+      title: '适用',
+      heading: '1. 适用范围',
+      sections: [{
+        heading: '适用车辆',
+        body: [
+          item.applicable.en,
+          '作业前请核对 VIN、发动机型号与规格变更范围。',
+        ],
+      }],
+    },
+    {
+      title: '安全',
+      heading: '2. 安全注意事项',
+      sections: [{
+        body: [
+          '混合动力 / 高压车型须先拔下维修插头，并遵守规定等待时间。',
+          '排气系统作业时注意隔热板温度。',
+        ],
+      }],
+    },
+    {
+      title: 'P0420',
+      heading: '3. P0420 / 氧传感器要点',
+      sections: [{
+        heading: '检查要点',
+        body: item.edition === 'supplement'
+          ? [
+              '传感器更换后，路试结束必须复查连接器锁止。',
+              '振动可能导致锁止回退，从而再次存储 P0420。',
+            ]
+          : item.edition === 'model-specific'
+            ? [
+                'Hybrid Z：高压系统未断电时禁止拆装下游氧传感器。',
+                '确认 READY 灯熄灭后再开始排气作业。',
+              ]
+            : [
+                '在判定催化剂故障前，先检查下游氧传感器波形与连接器。',
+                '更换后执行路试，确认故障码不再存储。',
+              ],
+      }],
+    },
+    {
+      title: '规定值',
+      heading: '4. 规定值',
+      sections: [{
+        body: [
+          '氧传感器（Bank 1 Sensor 2）：40 N·m',
+          '排气法兰：21 N·m',
+          `来源：${item.fileName}`,
+        ],
+      }],
+    },
+  ];
+}
+
+function smPages(item: ManualCatalogItem, lang: ManualDocLang): PdfPage[] {
   const isLc = item.model.includes('Land Cruiser');
   const isCc = item.model.includes('Corolla Cross');
   const J = ja(lang);
@@ -235,7 +415,7 @@ function smPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
   ];
 }
 
-function omPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
+function omPages(item: ManualCatalogItem, lang: ManualDocLang): PdfPage[] {
   const J = ja(lang);
   return [
     {
@@ -305,7 +485,7 @@ function omPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
   ];
 }
 
-function tmPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
+function tmPages(item: ManualCatalogItem, lang: ManualDocLang): PdfPage[] {
   const J = ja(lang);
   return [
     {
@@ -364,7 +544,7 @@ function tmPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
   ];
 }
 
-function brmPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
+function brmPages(item: ManualCatalogItem, lang: ManualDocLang): PdfPage[] {
   const J = ja(lang);
   return [
     {
@@ -417,7 +597,7 @@ function brmPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
   ];
 }
 
-function wdPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
+function wdPages(item: ManualCatalogItem, lang: ManualDocLang): PdfPage[] {
   const J = ja(lang);
   return [
     {
@@ -470,7 +650,7 @@ function wdPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
   ];
 }
 
-function tnPages(item: ManualCatalogItem, lang: Language): PdfPage[] {
+function tnPages(item: ManualCatalogItem, lang: ManualDocLang): PdfPage[] {
   const J = ja(lang);
   const isLc = item.model.includes('Land Cruiser');
   return [

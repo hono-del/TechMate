@@ -160,10 +160,12 @@ function ContactUsModal({ onClose }: { onClose: () => void }) {
 }
 
 const HELP_KEYS: Record<Role, TranslationKey[]> = {
+  'system-admin': ['help.cmc.1', 'help.cmc.2', 'help.cmc.3', 'help.cmc.4', 'help.cmc.5'],
+  'dealer-admin': ['help.dealer.1', 'help.dealer.2', 'help.dealer.3', 'help.dealer.4', 'help.dealer.5'],
+  'manufacturer-approver': ['help.cmc.1', 'help.cmc.2', 'help.cmc.3', 'help.cmc.4', 'help.cmc.5'],
   'service-advisor': ['help.tech.1', 'help.tech.2', 'help.tech.3', 'help.tech.4', 'help.tech.5'],
   technician: ['help.tech.1', 'help.tech.2', 'help.tech.3', 'help.tech.4', 'help.tech.5'],
-  'dealer-admin': ['help.dealer.1', 'help.dealer.2', 'help.dealer.3', 'help.dealer.4', 'help.dealer.5'],
-  cmc: ['help.cmc.1', 'help.cmc.2', 'help.cmc.3', 'help.cmc.4', 'help.cmc.5'],
+  'technician-manager': ['help.dealer.1', 'help.dealer.2', 'help.dealer.3', 'help.dealer.4', 'help.dealer.5'],
 };
 
 function HelpGuideModal({ onClose, role }: { onClose: () => void; role: Role }) {

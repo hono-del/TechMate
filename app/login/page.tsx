@@ -1,43 +1,51 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Building2, Globe, Shield, Wrench, UserCog, Landmark, ClipboardList } from 'lucide-react';
+import { Building2, Globe, Shield, Wrench, UserCog, Landmark, ClipboardList, BadgeCheck, Users } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { USERS, getDealer, type Role } from '@/data/users';
 
 const ROLE_ICON: Record<Role, typeof Wrench> = {
+  'system-admin': Landmark,
+  'dealer-admin': UserCog,
+  'manufacturer-approver': BadgeCheck,
   'service-advisor': ClipboardList,
   technician: Wrench,
-  'dealer-admin': UserCog,
-  cmc: Landmark,
+  'technician-manager': Users,
 };
 
 const ROLE_ACCENT: Record<Role, string> = {
+  'system-admin': 'bg-violet-600',
+  'dealer-admin': 'bg-teal',
+  'manufacturer-approver': 'bg-indigo-600',
   'service-advisor': 'bg-orange-500',
   technician: 'bg-brand-blue',
-  'dealer-admin': 'bg-teal',
-  cmc: 'bg-violet-600',
+  'technician-manager': 'bg-sky-700',
+};
+
+const ROLE_LABEL: Record<Role, 'auth.role.system-admin' | 'auth.role.dealer-admin' | 'auth.role.manufacturer-approver' | 'auth.role.service-advisor' | 'auth.role.technician' | 'auth.role.technician-manager'> = {
+  'system-admin': 'auth.role.system-admin',
+  'dealer-admin': 'auth.role.dealer-admin',
+  'manufacturer-approver': 'auth.role.manufacturer-approver',
+  'service-advisor': 'auth.role.service-advisor',
+  technician: 'auth.role.technician',
+  'technician-manager': 'auth.role.technician-manager',
+};
+
+const ROLE_SCOPE: Record<Role, 'auth.scope.system-admin' | 'auth.scope.dealer-admin' | 'auth.scope.manufacturer-approver' | 'auth.scope.service-advisor' | 'auth.scope.technician' | 'auth.scope.technician-manager'> = {
+  'system-admin': 'auth.scope.system-admin',
+  'dealer-admin': 'auth.scope.dealer-admin',
+  'manufacturer-approver': 'auth.scope.manufacturer-approver',
+  'service-advisor': 'auth.scope.service-advisor',
+  technician: 'auth.scope.technician',
+  'technician-manager': 'auth.scope.technician-manager',
 };
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const { lang, toggleLang, t } = useLanguage();
-
-  const roleLabel = (role: Role) => {
-    if (role === 'service-advisor') return t('auth.role.service-advisor');
-    if (role === 'technician') return t('auth.role.technician');
-    if (role === 'dealer-admin') return t('auth.role.dealer-admin');
-    return t('auth.role.cmc');
-  };
-
-  const roleScope = (role: Role) => {
-    if (role === 'service-advisor') return t('auth.scope.service-advisor');
-    if (role === 'technician') return t('auth.scope.technician');
-    if (role === 'dealer-admin') return t('auth.scope.dealer-admin');
-    return t('auth.scope.cmc');
-  };
 
   return (
     <div className="min-h-screen bg-navy flex flex-col">
@@ -62,7 +70,7 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-white mb-2">{t('auth.title')}</h1>
         <p className="text-sm text-white/60 mb-8 text-center max-w-lg">{t('auth.subtitle')}</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-5xl">
           {USERS.map(u => {
             const dealer = getDealer(u.dealerId);
             const Icon = ROLE_ICON[u.role];
@@ -80,7 +88,7 @@ export default function LoginPage() {
                     {u.initials}
                   </div>
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full text-white ${ROLE_ACCENT[u.role]}`}>
-                    {roleLabel(u.role)}
+                    {t(ROLE_LABEL[u.role])}
                   </span>
                 </div>
                 <div className="font-bold text-slate-900 text-base">
@@ -104,7 +112,7 @@ export default function LoginPage() {
                   </div>
                   <div className="flex items-start gap-1.5 text-slate-500">
                     <Shield className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
-                    <span>{roleScope(u.role)}</span>
+                    <span>{t(ROLE_SCOPE[u.role])}</span>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-sm font-bold text-brand-blue">

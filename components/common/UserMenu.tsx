@@ -13,11 +13,7 @@ export function UserMenu({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
   const [open, setOpen] = useState(false);
   if (!user) return null;
 
-  const roleLabel = (role: Role) => {
-    if (role === 'technician') return t('auth.role.technician');
-    if (role === 'dealer-admin') return t('auth.role.dealer-admin');
-    return t('auth.role.cmc');
-  };
+  const roleLabel = (role: Role) => t(`auth.role.${role}` as 'auth.role.technician');
 
   const isDark = variant === 'dark';
 

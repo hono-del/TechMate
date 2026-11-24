@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Undo2, XCircle, Upload } from 'lucide-react';
+import { CheckCircle2, Undo2, XCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import {
@@ -11,19 +11,24 @@ import {
   type TieSubmission,
 } from '@/data/admin/tieFlow';
 import type { TranslationKey } from '@/lib/translations';
+import { TieBody } from '@/components/admin/TieBody';
 
 const STATUS_KEY: Record<TieApprovalStatus, TranslationKey> = {
+  draft: 'tieq.status.draft',
   submitted: 'tieq.status.submitted',
-  'dealer-approved': 'tieq.status.dealer',
-  'changes-requested': 'tieq.status.changes',
+  'review-requested': 'tieq.status.review',
+  'correction-requested': 'tieq.status.correction',
+  approved: 'tieq.status.approved',
   rejected: 'tieq.status.rejected',
   published: 'tieq.status.published',
 };
 
 const STATUS_CLS: Record<TieApprovalStatus, string> = {
+  draft: 'bg-slate-100 text-slate-600',
   submitted: 'bg-amber-100 text-amber-800',
-  'dealer-approved': 'bg-blue-100 text-blue-800',
-  'changes-requested': 'bg-orange-100 text-orange-800',
+  'review-requested': 'bg-blue-100 text-blue-800',
+  'correction-requested': 'bg-orange-100 text-orange-800',
+  approved: 'bg-teal-100 text-teal-800',
   rejected: 'bg-red-100 text-red-700',
   published: 'bg-green-100 text-green-800',
 };
@@ -31,13 +36,13 @@ const STATUS_CLS: Record<TieApprovalStatus, string> = {
 export default function TieApprovalsPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const isCmc = user?.role === 'cmc';
+  const isLeader = user?.role === 'technician-manager' || user?.role === 'dealer-admin' || user?.role === 'system-admin';
   const [items, setItems] = useState<TieSubmission[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const q = readTieQueue();
+    const q = readTieQueue().filter(i => i.status !== 'draft');
     setItems(q);
     setSelectedId(q[0]?.id ?? null);
   }, []);
@@ -45,9 +50,9 @@ export default function TieApprovalsPage() {
   const selected = items.find((i) => i.id === selectedId) ?? items[0];
 
   const patch = (id: string, status: TieApprovalStatus, note: TranslationKey) => {
-    const next = items.map((i) => (i.id === id ? { ...i, status } : i));
-    setItems(next);
-    writeTieQueue(next);
+    const all = readTieQueue().map((i) => (i.id === id ? { ...i, status } : i));
+    writeTieQueue(all);
+    setItems(all.filter(i => i.status !== 'draft'));
     setMsg(t(note));
   };
 
@@ -83,54 +88,33 @@ export default function TieApprovalsPage() {
           </div>
 
           <ol className="flex flex-wrap gap-2 text-[11px] font-bold uppercase text-slate-400">
-            {(['submitted', 'dealer-approved', 'published'] as TieApprovalStatus[]).map((s, i) => (
+            {(['submitted', 'review-requested', 'published'] as TieApprovalStatus[]).map((s, i) => (
               <li key={s} className={`px-2 py-1 rounded ${selected.status === s ? STATUS_CLS[s] : 'bg-slate-100'}`}>
                 {i + 1}. {t(STATUS_KEY[s])}
               </li>
             ))}
           </ol>
 
-          <section className="bg-white border border-slate-200 rounded-xl p-5 space-y-2 text-sm">
-            <h2 className="text-base font-bold text-slate-900">{selected.title}</h2>
-            <Meta label={t('tiesub.system')} value={`${selected.system} · ${selected.faultType}`} />
-            <Meta label={t('vehicle.model')} value={`${selected.year} ${selected.model}`} />
-            <Meta label={t('tiesub.dtc')} value={selected.dtc} />
-            <Meta label={t('tiesub.chapter')} value={selected.chapter} />
-            <Meta label={t('tieq.author')} value={`${selected.author} · ${selected.dealer}`} />
-            <Meta label={t('tieq.when')} value={selected.submittedAt} />
-            <p className="text-slate-700 pt-2 leading-relaxed">{selected.body}</p>
-          </section>
+          <TieBody item={selected} />
 
           {msg && (
             <div className="bg-teal/10 border border-teal/20 rounded-lg px-4 py-2.5 text-sm text-teal font-medium">{msg}</div>
           )}
 
           <div className="flex flex-wrap gap-2">
-            {!isCmc && selected.status === 'submitted' && (
+            {isLeader && selected.status === 'submitted' && (
               <>
-                <Action icon={CheckCircle2} label={t('tieq.approve')} onClick={() => patch(selected.id, 'dealer-approved', 'tieq.msg.approved')} />
-                <Action icon={Undo2} label={t('tieq.changes')} onClick={() => patch(selected.id, 'changes-requested', 'tieq.msg.changes')} />
+                <Action icon={ArrowRight} label={t('tieq.forward')} onClick={() => patch(selected.id, 'review-requested', 'tieq.msg.forward')} />
+                <Action icon={Undo2} label={t('tieq.changes')} onClick={() => patch(selected.id, 'correction-requested', 'tieq.msg.changes')} />
                 <Action icon={XCircle} label={t('tieq.reject')} onClick={() => patch(selected.id, 'rejected', 'tieq.msg.rejected')} />
               </>
             )}
-            {isCmc && selected.status === 'dealer-approved' && (
-              <Action icon={Upload} label={t('tieq.publish')} onClick={() => patch(selected.id, 'published', 'tieq.msg.published')} />
-            )}
-            {isCmc && selected.status === 'submitted' && (
-              <p className="text-xs text-slate-500">{t('tieq.cmc-wait')}</p>
+            {isLeader && selected.status === 'review-requested' && (
+              <p className="text-xs text-slate-500">{t('tieq.mfr-wait')}</p>
             )}
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function Meta({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4">
-      <span className="text-slate-400">{label}</span>
-      <span className="font-medium text-slate-800 text-right">{value}</span>
     </div>
   );
 }

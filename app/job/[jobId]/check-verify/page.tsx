@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   getVerifyCheckItems,
   getMissedCheckHints,
   getRepairSummary,
+  getLocalizedJob,
   type VerifyCheckItem,
 } from '@/data/localizedData';
 import { useLanguage } from '@/context/LanguageContext';
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 
 type ItemStatus = 'pending' | 'passed' | 'failed' | 'na';
+type ConcernStatus = 'pending' | 'resolved' | 'action';
 
 export default function CheckVerifyPage() {
   const router = useRouter();
@@ -29,6 +31,20 @@ export default function CheckVerifyPage() {
   const [items, setItems] = useState<VerifyCheckItem[]>(initialItems);
   const missedHints = useMemo(() => getMissedCheckHints(lang), [lang]);
   const repairSummary = useMemo(() => getRepairSummary(lang), [lang]);
+  const job = useMemo(() => getLocalizedJob(lang), [lang]);
+  const concernDefs = useMemo(() => {
+    const list: { id: string; text: string; kind: 'concern' | 'symptom' }[] = [
+      { id: 'main', text: job.customerConcern, kind: 'concern' },
+    ];
+    job.symptoms.forEach((s, i) => list.push({ id: `s-${i}`, text: s, kind: 'symptom' }));
+    return list;
+  }, [job]);
+  const [concernStatus, setConcernStatus] = useState<Record<string, ConcernStatus>>({});
+  const [concernActionNotes, setConcernActionNotes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setConcernStatus(Object.fromEntries(concernDefs.map(c => [c.id, 'pending' as ConcernStatus])));
+  }, [concernDefs]);
   const [showRelatedInfo, setShowRelatedInfo] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const toggleCard = (id: string) => setExpandedCard(prev => prev === id ? null : id);
@@ -46,10 +62,21 @@ export default function CheckVerifyPage() {
   const pendingRequired = items.filter(i => i.required && i.status === 'pending').length;
   const allRequiredPassed = items.filter(i => i.required).every(i => i.status === 'passed' || i.status === 'na');
   const failedItems  = items.filter(i => i.status === 'failed');
+  const actionNoteFilled = (id: string) => (concernActionNotes[id] ?? '').trim().length > 0;
+  const pendingConcerns = concernDefs.filter(c => (concernStatus[c.id] ?? 'pending') === 'pending').length;
+  const missingActionNotes = concernDefs.filter(c =>
+    (concernStatus[c.id] ?? 'pending') === 'action' && !actionNoteFilled(c.id)
+  ).length;
+  const concernsReady = concernDefs.every(c => {
+    const s = concernStatus[c.id] ?? 'pending';
+    if (s === 'resolved') return true;
+    if (s === 'action') return actionNoteFilled(c.id);
+    return false;
+  });
 
   const completionStatus: 'in-progress' | 'additional-check' | 'ready' =
     failedCount > 0 ? 'additional-check' :
-    allRequiredPassed  ? 'ready' :
+    allRequiredPassed && concernsReady ? 'ready' :
     'in-progress';
 
   const categories = [...new Set(items.map(i => i.category))];
@@ -198,6 +225,81 @@ export default function CheckVerifyPage() {
         </div>
       )}
 
+      {/* ── Customer concerns / requests (separate from technical checks) ── */}
+      <section className="mb-6 bg-white rounded-2xl border-2 border-blue-200 shadow-sm overflow-hidden">
+        <div className="bg-blue-50 border-b border-blue-200 px-5 py-3">
+          <h2 className="text-sm font-bold text-blue-900">{t('verify.concerns.title')}</h2>
+          <p className="text-xs text-blue-700 mt-1">{t('verify.concerns.sub')}</p>
+        </div>
+        <div className="divide-y divide-blue-100">
+          {concernDefs.map(item => {
+            const status = concernStatus[item.id] ?? 'pending';
+            const note = concernActionNotes[item.id] ?? '';
+            const noteOk = actionNoteFilled(item.id);
+            return (
+              <div
+                key={item.id}
+                className={`px-5 py-4 ${
+                  status === 'resolved' ? 'bg-green-50' :
+                  status === 'action' ? (noteOk ? 'bg-amber-50' : 'bg-amber-50/80') : ''
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-6 pt-0.5">
+                    {status === 'resolved' ? <CheckCircle2 className="w-5 h-5 text-verified" /> :
+                     status === 'action' ? <AlertTriangle className="w-5 h-5 text-amber-500" /> :
+                     <div className="w-5 h-5 rounded-full border-2 border-slate-300" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mb-0.5">
+                      {item.kind === 'concern' ? t('verify.concerns.item') : t('verify.concerns.symptom')}
+                    </div>
+                    <div className="text-sm font-medium text-slate-800">{item.text}</div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {([
+                      { s: 'resolved' as ConcernStatus, label: t('verify.concerns.resolved'), cls: 'bg-green-500 text-white', idle: 'bg-slate-100 text-slate-500 hover:bg-slate-200' },
+                      { s: 'action' as ConcernStatus, label: t('verify.concerns.action'), cls: 'bg-amber-500 text-white', idle: 'bg-slate-100 text-slate-500 hover:bg-slate-200' },
+                      { s: 'pending' as ConcernStatus, label: t('verify.concerns.pending'), cls: 'bg-slate-500 text-white', idle: 'bg-slate-100 text-slate-500 hover:bg-slate-200' },
+                    ]).map(btn => (
+                      <button
+                        key={btn.s}
+                        onClick={() => setConcernStatus(prev => ({ ...prev, [item.id]: btn.s }))}
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${status === btn.s ? btn.cls : btn.idle}`}
+                      >
+                        {btn.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {status === 'action' && (
+                  <div className="mt-3 ml-10">
+                    <label className="block">
+                      <span className="text-[11px] font-bold uppercase tracking-wide text-amber-800">
+                        {t('verify.concerns.action.required')} <span className="text-red-600">*</span>
+                      </span>
+                      <textarea
+                        value={note}
+                        onChange={e => setConcernActionNotes(prev => ({ ...prev, [item.id]: e.target.value }))}
+                        placeholder={t('verify.concerns.action.ph')}
+                        rows={3}
+                        required
+                        className={`mt-1.5 w-full text-sm border rounded-lg px-3 py-2 leading-relaxed focus:outline-none focus:ring-2 ${
+                          noteOk
+                            ? 'border-amber-300 focus:ring-amber-400 bg-white'
+                            : 'border-red-300 focus:ring-red-400 bg-white'
+                        }`}
+                      />
+                    </label>
+                    <p className="mt-1.5 text-[11px] text-amber-800 leading-relaxed">{t('verify.concerns.action.hint')}</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       <div className="grid grid-cols-3 gap-6">
         {/* ── Left: Status + Progress + Hints ───────────────────────────── */}
         <div className="col-span-1 space-y-4">
@@ -239,13 +341,11 @@ export default function CheckVerifyPage() {
             <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-3">{t('verify.quick-actions')}</div>
             <div className="space-y-2">
               <button
-                onClick={() => setItems(prev => prev.map(i => ({ ...i, status: 'passed' as ItemStatus })))}
-                className="w-full text-xs font-medium py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                ✓ {t('verify.mark-all-passed')}
-              </button>
-              <button
-                onClick={() => setItems(getVerifyCheckItems(lang))}
+                onClick={() => {
+                  setItems(getVerifyCheckItems(lang));
+                  setConcernStatus(Object.fromEntries(concernDefs.map(c => [c.id, 'pending' as ConcernStatus])));
+                  setConcernActionNotes({});
+                }}
                 className="flex items-center gap-1.5 w-full justify-center text-xs font-medium py-2 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <RotateCcw className="w-3 h-3" /> {t('verify.reset-all')}
@@ -387,11 +487,19 @@ export default function CheckVerifyPage() {
             </span>
           )}
           {completionStatus === 'in-progress' && (
-            <span className="text-slate-500">{pendingRequired} {t('verify.cta-pending')}</span>
+            <span className="text-slate-500">
+              {pendingRequired > 0
+                ? `${pendingRequired} ${t('verify.cta-pending')}`
+                : pendingConcerns > 0
+                  ? `${pendingConcerns} ${t('verify.concerns.open')}`
+                  : missingActionNotes > 0
+                    ? `${missingActionNotes} ${t('verify.concerns.action.missing')}`
+                    : t('verify.cta-pending')}
+            </span>
           )}
         </div>
         <button
-          onClick={() => router.push(`/job/${jobId}/handover`)}
+          onClick={() => router.push(`/job/${jobId}/explanation-note`)}
           disabled={completionStatus !== 'ready'}
           className={`
             flex items-center gap-2 font-semibold px-6 py-3 rounded-xl transition-colors shadow-md

@@ -69,7 +69,7 @@ function KnowledgePageContent() {
   const router = useRouter();
   const { t, lang } = useLanguage();
   const { canAccess, hasRole, user, dealer } = useAuth();
-  const canCreateKnowledge = hasRole('dealer-admin', 'cmc');
+  const canCreateKnowledge = hasRole('dealer-admin', 'system-admin', 'technician-manager');
   const initialIssue = searchParams.get('issue') ?? KNOWLEDGE_GAPS[0].id.replace('gap-', '');
 
   const findGap = (issueId: string) =>

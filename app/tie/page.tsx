@@ -16,6 +16,9 @@ interface TieEntry {
   system: string;
   systemJa: string;
   publishedAt: string;
+  tags: string[];
+  driveType: '2WD' | '4WD';
+  powertrain: 'Gasoline' | 'Diesel' | 'Hybrid';
 }
 
 const TIE_LIST: TieEntry[] = [
@@ -29,6 +32,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'Engine / Exhaust',
     systemJa: 'エンジン / 排気',
     publishedAt: '2022-11-04',
+    tags: ['P0420', 'O2 sensor', 'Catalyst'],
+    driveType: '2WD',
+    powertrain: 'Hybrid',
   },
   {
     id: 'TIE-2023-214',
@@ -40,6 +46,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'Engine / Exhaust',
     systemJa: 'エンジン / 排気',
     publishedAt: '2023-05-17',
+    tags: ['P0141', 'Harness'],
+    driveType: '4WD',
+    powertrain: 'Gasoline',
   },
   {
     id: 'TIE-2023-089',
@@ -51,6 +60,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'Audio / HU',
     systemJa: 'オーディオ / HU',
     publishedAt: '2023-09-28',
+    tags: ['Bluetooth', 'HU'],
+    driveType: '4WD',
+    powertrain: 'Gasoline',
   },
   {
     id: 'TIE-2024-011',
@@ -62,6 +74,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'Engine / Fuel',
     systemJa: 'エンジン / 燃料',
     publishedAt: '2024-02-13',
+    tags: ['P0300', 'Misfire'],
+    driveType: '2WD',
+    powertrain: 'Gasoline',
   },
   {
     id: 'TIE-2024-055',
@@ -73,6 +88,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'Chassis / TPMS',
     systemJa: 'シャシー / TPMS',
     publishedAt: '2024-04-03',
+    tags: ['TPMS'],
+    driveType: '4WD',
+    powertrain: 'Diesel',
   },
   {
     id: 'TIE-2024-102',
@@ -84,6 +102,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'Engine / Exhaust',
     systemJa: 'エンジン / 排気',
     publishedAt: '2024-06-19',
+    tags: ['P0171', 'Evap'],
+    driveType: '2WD',
+    powertrain: 'Hybrid',
   },
   {
     id: 'TIE-2024-178',
@@ -95,6 +116,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'Body / Camera',
     systemJa: 'ボディ / カメラ',
     publishedAt: '2024-08-07',
+    tags: ['Camera'],
+    driveType: '2WD',
+    powertrain: 'Hybrid',
   },
   {
     id: 'TIE-2025-033',
@@ -106,6 +130,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'HVAC / Electrical',
     systemJa: '空調 / 電気',
     publishedAt: '2025-01-22',
+    tags: ['HVAC'],
+    driveType: '4WD',
+    powertrain: 'Hybrid',
   },
   {
     id: 'TIE-2025-091',
@@ -117,6 +144,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'ADAS / Camera',
     systemJa: 'ADAS / カメラ',
     publishedAt: '2025-05-14',
+    tags: ['ADAS'],
+    driveType: '2WD',
+    powertrain: 'Gasoline',
   },
   {
     id: 'TIE-2025-144',
@@ -128,6 +158,9 @@ const TIE_LIST: TieEntry[] = [
     system: 'Engine / Exhaust',
     systemJa: 'エンジン / 排気',
     publishedAt: '2025-10-01',
+    tags: ['P0136', 'O2 sensor', 'Post-repair'],
+    driveType: '2WD',
+    powertrain: 'Hybrid',
   },
 ];
 
@@ -140,21 +173,29 @@ export default function TieListPage() {
   const [keyword, setKeyword] = useState('');
   const [filterModel, setFilterModel] = useState('All');
   const [filterSystem, setFilterSystem] = useState('All');
+  const [filterYear, setFilterYear] = useState('All');
+  const [filterDrive, setFilterDrive] = useState('All');
+  const [filterPt, setFilterPt] = useState('All');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const filtered = useMemo(() => {
-    const kw = keyword.toLowerCase();
+    const terms = keyword.toLowerCase().split(/[;\s]+/).map(s => s.trim()).filter(Boolean);
     return TIE_LIST.filter(tie => {
       if (filterModel !== 'All' && tie.model !== filterModel) return false;
       if (filterSystem !== 'All' && tie.system !== filterSystem) return false;
-      if (kw) {
-        const haystack = [tie.id, tie.title, tie.titleJa, tie.dtc, tie.model, tie.system, tie.systemJa].join(' ').toLowerCase();
-        if (!haystack.includes(kw)) return false;
+      if (filterYear !== 'All' && !tie.year.includes(filterYear)) return false;
+      if (filterDrive !== 'All' && tie.driveType !== filterDrive) return false;
+      if (filterPt !== 'All' && tie.powertrain !== filterPt) return false;
+      if (dateFrom && tie.publishedAt < dateFrom) return false;
+      if (dateTo && tie.publishedAt > dateTo) return false;
+      if (terms.length) {
+        const haystack = [tie.id, tie.title, tie.titleJa, tie.dtc, tie.model, tie.system, tie.systemJa, ...tie.tags].join(' ').toLowerCase();
+        if (!terms.every(term => haystack.includes(term))) return false;
       }
       return true;
     });
-  }, [keyword, filterModel, filterSystem]);
-
-  const systemOptions = lang === 'ja' ? ALL_SYSTEMS_JA : ALL_SYSTEMS_EN;
+  }, [keyword, filterModel, filterSystem, filterYear, filterDrive, filterPt, dateFrom, dateTo]);
 
   return (
     <div className="min-h-screen bg-surface">
@@ -185,6 +226,7 @@ export default function TieListPage() {
         </Link>
 
         <p className="text-sm text-slate-500 mb-6">{t('tie.list.subtitle')}</p>
+        <p className="text-xs text-slate-400 -mt-4 mb-6">{t('tie.list.search.help')}</p>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-6">
@@ -222,6 +264,29 @@ export default function TieListPage() {
               </option>
             ))}
           </select>
+          <select value={filterYear} onChange={e => setFilterYear(e.target.value)} className="text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-700">
+            <option value="All">{t('tie.list.filter.year')}</option>
+            {['2021', '2022', '2023', '2024', '2025'].map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+          <select value={filterDrive} onChange={e => setFilterDrive(e.target.value)} className="text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-700">
+            <option value="All">{t('tiesub.drive')}</option>
+            <option value="2WD">2WD</option>
+            <option value="4WD">4WD</option>
+          </select>
+          <select value={filterPt} onChange={e => setFilterPt(e.target.value)} className="text-sm bg-white border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-700">
+            <option value="All">{t('tiesub.powertrain')}</option>
+            <option value="Gasoline">{t('tiesub.pt.gas')}</option>
+            <option value="Diesel">{t('tiesub.pt.diesel')}</option>
+            <option value="Hybrid">{t('tiesub.pt.hybrid')}</option>
+          </select>
+          <label className="flex items-center gap-2 text-xs text-slate-500 bg-white border border-slate-200 rounded-xl px-3 py-2">
+            {t('tie.list.date.from')}
+            <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="text-sm outline-none" />
+          </label>
+          <label className="flex items-center gap-2 text-xs text-slate-500 bg-white border border-slate-200 rounded-xl px-3 py-2">
+            {t('tie.list.date.to')}
+            <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="text-sm outline-none" />
+          </label>
         </div>
 
         {/* Table */}
@@ -253,6 +318,11 @@ export default function TieListPage() {
                     <td className="px-4 py-3 max-w-xs">
                       <div className="text-sm font-medium text-slate-800 leading-snug line-clamp-2">
                         {lang === 'ja' ? tie.titleJa : tie.title}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {tie.tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{tag}</span>
+                        ))}
                       </div>
                     </td>
                     <td className="px-4 py-3">

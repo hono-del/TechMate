@@ -4,6 +4,7 @@ export type WorkflowStep =
   | 'work-planning'
   | 'repair'
   | 'check-verify'
+  | 'explanation-note'
   | 'handover';
 
 export type InformationClass = 'oem-official' | 'field-knowledge' | 'ai-generated';
@@ -162,8 +163,8 @@ export interface ExplanationNote {
 export const WORKFLOW_STEPS: { id: WorkflowStep; label: string; shortLabel: string }[] = [
   { id: 'reception', label: 'Reception', shortLabel: 'Reception' },
   { id: 'diagnosis', label: 'Diagnosis', shortLabel: 'Diagnosis' },
-  { id: 'work-planning', label: 'Work Planning', shortLabel: 'Planning' },
   { id: 'repair', label: 'Repair', shortLabel: 'Repair' },
   { id: 'check-verify', label: 'Check & Verify', shortLabel: 'Verify' },
+  { id: 'explanation-note', label: 'Work Note', shortLabel: 'Note' },
   { id: 'handover', label: 'Handover', shortLabel: 'Handover' },
 ];

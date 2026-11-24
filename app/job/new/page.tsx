@@ -3,14 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Car, CheckCircle2, ScanLine, User, Phone, Mail, Hash, Gauge, Calendar, Wrench } from 'lucide-react';
+import { ArrowLeft, Car, CheckCircle2, ScanLine, User, Phone, Mail, Hash, Gauge, Calendar } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { UserMenu } from '@/components/common/UserMenu';
 import { MANUAL_MODELS } from '@/data/manuals';
-
-const TECHNICIANS = [
-  { id: 'u-tech', name: 'Kenji Yamamoto', nameJa: '山本 健司', title: 'Senior Technician' },
-];
 
 const ENGINE_OPTIONS = ['1200', '1500', '1800', '2000', '2500', '3500', '4000', '4500'];
 
@@ -36,9 +32,6 @@ export default function NewJobPage() {
 
   // Complaint
   const [concern, setConcern] = useState('');
-
-  // Assign
-  const [techId, setTechId] = useState(TECHNICIANS[0].id);
 
   const [created, setCreated] = useState(false);
 
@@ -85,9 +78,7 @@ export default function NewJobPage() {
                 <p className="text-sm text-slate-600 mt-1">
                   RO-2026-10-0088 · {year} {model}
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {lang === 'ja' ? `担当: ${TECHNICIANS.find(tc => tc.id === techId)?.nameJa}` : `Assigned to: ${TECHNICIANS.find(tc => tc.id === techId)?.name}`}
-                </p>
+                <p className="text-xs text-slate-500 mt-0.5">{t('jobnew.sent-assign')}</p>
                 <p className="text-xs text-slate-400 mt-2">{t('jobnew.demo-note')}</p>
               </div>
             </div>
@@ -290,27 +281,6 @@ export default function NewJobPage() {
                   rows={3}
                   className="mt-1 w-full text-sm border border-slate-200 rounded-lg px-3 py-2 font-normal"
                 />
-              </label>
-            </section>
-
-            {/* ── Assign section ── */}
-            <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-              <h2 className="text-xs font-bold uppercase text-slate-400 tracking-wide flex items-center gap-2">
-                <Wrench className="w-3.5 h-3.5" /> {t('jobnew.section.assign')}
-              </h2>
-              <label className="block text-xs font-bold uppercase text-slate-400">
-                {t('jobnew.assign.ph')}
-                <select
-                  value={techId}
-                  onChange={e => setTechId(e.target.value)}
-                  className="mt-1 w-full text-sm font-medium text-slate-800 border border-slate-200 rounded-lg px-3 py-2"
-                >
-                  {TECHNICIANS.map(tc => (
-                    <option key={tc.id} value={tc.id}>
-                      {lang === 'ja' ? tc.nameJa : tc.name} — {tc.title}
-                    </option>
-                  ))}
-                </select>
               </label>
             </section>
 
