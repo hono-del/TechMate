@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/context/LanguageContext';
 import { UserMenu } from '@/components/common/UserMenu';
+import { AppTopBar } from '@/components/common/AppTopBar';
 import { Search, FileText, ChevronRight, ArrowLeft } from 'lucide-react';
 
 interface TieEntry {
@@ -199,26 +200,16 @@ export default function TieListPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <header className="bg-navy text-white px-6 py-4 flex items-center justify-between shadow-md">
-        <div>
-          <div className="text-xs font-bold tracking-widest text-blue-200 uppercase">{t('app.name')}</div>
-          <div className="text-lg font-bold">{t('tie.list.title')}</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/tie/submit" className="text-xs font-bold bg-blue-700 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg">
+      <AppTopBar kicker={t('app.name')} title={t('tie.list.title')}>
+          <Link href="/tie/submit" className="btn-primary">
             {t('tie.nav.submit')}
           </Link>
-          <button
-            type="button"
-            onClick={toggleLang}
-            className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 border border-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg"
-          >
+          <button type="button" onClick={toggleLang} className="btn-ghost">
             <span>{lang === 'en' ? '🇯🇵' : '🇺🇸'}</span>
             <span>{lang === 'en' ? '日本語' : 'English'}</span>
           </button>
-          <UserMenu variant="dark" />
-        </div>
-      </header>
+          <UserMenu variant="light" />
+      </AppTopBar>
 
       <div className="max-w-5xl mx-auto px-6 py-8">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-blue mb-5">

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Car, CheckCircle2, ScanLine, User, Phone, Mail, Hash, Gauge, Calendar } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { UserMenu } from '@/components/common/UserMenu';
+import { AppTopBar } from '@/components/common/AppTopBar';
 import { MANUAL_MODELS } from '@/data/manuals';
 
 const ENGINE_OPTIONS = ['1200', '1500', '1800', '2000', '2500', '3500', '4000', '4500'];
@@ -46,23 +47,13 @@ export default function NewJobPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <header className="bg-navy text-white px-6 py-4 flex items-center justify-between shadow-md">
-        <div>
-          <div className="text-xs font-bold tracking-widest text-blue-200 uppercase">{t('app.name')}</div>
-          <div className="text-lg font-bold">{t('jobnew.title')}</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={toggleLang}
-            className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 border border-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg"
-          >
+      <AppTopBar kicker={t('app.name')} title={t('jobnew.title')}>
+          <button type="button" onClick={toggleLang} className="btn-ghost">
             <span>{lang === 'en' ? '🇯🇵' : '🇺🇸'}</span>
             <span>{lang === 'en' ? '日本語' : 'English'}</span>
           </button>
-          <UserMenu variant="dark" />
-        </div>
-      </header>
+          <UserMenu variant="light" />
+      </AppTopBar>
 
       <div className="max-w-2xl mx-auto px-6 py-8">
         <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brand-blue mb-6">
@@ -85,7 +76,7 @@ export default function NewJobPage() {
             <button
               type="button"
               onClick={() => router.push('/job/job-001/reception')}
-              className="bg-navy hover:bg-navy-light text-white text-sm font-bold px-4 py-2 rounded-lg"
+              className="btn-primary"
             >
               {t('jobnew.open-reception')}
             </button>
@@ -287,7 +278,7 @@ export default function NewJobPage() {
             <button
               type="submit"
               disabled={!isValid}
-              className="w-full inline-flex items-center justify-center gap-2 bg-navy hover:bg-navy-light text-white text-sm font-bold px-4 py-3 rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="w-full btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <Car className="w-4 h-4" /> {t('jobnew.create.sa')}
             </button>

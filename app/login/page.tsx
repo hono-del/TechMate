@@ -5,6 +5,7 @@ import { Building2, Globe, Shield, Wrench, UserCog, Landmark, ClipboardList, Bad
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { USERS, getDealer, type Role } from '@/data/users';
+import { CmcLogo } from '@/components/common/CmcLogo';
 
 const ROLE_ICON: Record<Role, typeof Wrench> = {
   'system-admin': Landmark,
@@ -16,12 +17,12 @@ const ROLE_ICON: Record<Role, typeof Wrench> = {
 };
 
 const ROLE_ACCENT: Record<Role, string> = {
-  'system-admin': 'bg-violet-600',
-  'dealer-admin': 'bg-teal',
-  'manufacturer-approver': 'bg-indigo-600',
-  'service-advisor': 'bg-orange-500',
-  technician: 'bg-brand-blue',
-  'technician-manager': 'bg-sky-700',
+  'system-admin': 'bg-brand-purple',
+  'dealer-admin': 'bg-brand-teal-deep',
+  'manufacturer-approver': 'bg-brand-navy',
+  'service-advisor': 'bg-warning',
+  technician: 'bg-brand-purple',
+  'technician-manager': 'bg-brand-teal-deep',
 };
 
 const ROLE_LABEL: Record<Role, 'auth.role.system-admin' | 'auth.role.dealer-admin' | 'auth.role.manufacturer-approver' | 'auth.role.service-advisor' | 'auth.role.technician' | 'auth.role.technician-manager'> = {
@@ -48,15 +49,18 @@ export default function LoginPage() {
   const { lang, toggleLang, t } = useLanguage();
 
   return (
-    <div className="min-h-screen bg-navy flex flex-col">
-      <header className="px-6 py-4 flex items-center justify-between">
-        <div>
-          <div className="text-xs font-bold tracking-widest text-blue-200 uppercase">{t('app.name')}</div>
-          <div className="text-white font-bold">{t('app.tagline')}</div>
+    <div className="min-h-screen bg-surface flex flex-col">
+      <header className="header-cmc px-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <CmcLogo href={null} />
+          <div className="hidden sm:block pl-3 border-l border-[var(--line-dark)]">
+            <div className="eyebrow">{t('app.name')}</div>
+            <div className="text-sm font-bold text-slate-900">{t('app.tagline')}</div>
+          </div>
         </div>
         <button
           onClick={toggleLang}
-          className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg"
+          className="btn-ghost"
         >
           <span>{lang === 'en' ? '🇯🇵' : '🇺🇸'}</span>
           <span>{lang === 'en' ? '日本語' : 'English'}</span>
@@ -64,11 +68,11 @@ export default function LoginPage() {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-16">
-        <div className="w-10 h-10 rounded-xl bg-brand-blue flex items-center justify-center mb-4">
-          <Wrench className="w-5 h-5 text-white" />
-        </div>
-        <h1 className="text-2xl font-bold text-white mb-2">{t('auth.title')}</h1>
-        <p className="text-sm text-white/60 mb-8 text-center max-w-lg">{t('auth.subtitle')}</p>
+        <p className="eyebrow mb-3">{t('app.name')}</p>
+        <h1 className="text-[36px] sm:text-[48px] font-bold tracking-tight text-slate-900 mb-2 text-center leading-[1.1]">
+          {t('auth.title')}
+        </h1>
+        <p className="text-[16px] leading-[1.55] text-slate-600 mb-10 text-center max-w-lg">{t('auth.subtitle')}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-5xl">
           {USERS.map(u => {
@@ -81,7 +85,7 @@ export default function LoginPage() {
                   login(u.id);
                   router.replace('/');
                 }}
-                className="text-left bg-white rounded-2xl p-5 hover:shadow-xl hover:-translate-y-0.5 transition-all border border-white/10"
+                className="text-left card-cmc p-8"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={`w-10 h-10 rounded-xl ${ROLE_ACCENT[u.role]} text-white flex items-center justify-center font-bold`}>
@@ -124,7 +128,7 @@ export default function LoginPage() {
           })}
         </div>
 
-        <p className="text-[11px] text-white/40 mt-8 max-w-xl text-center">{t('auth.demo-note')}</p>
+        <p className="text-xs text-slate-400 mt-10 max-w-xl text-center">{t('auth.demo-note')}</p>
       </main>
     </div>
   );

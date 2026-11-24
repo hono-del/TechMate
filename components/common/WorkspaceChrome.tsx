@@ -35,13 +35,13 @@ export function WorkspaceChrome() {
   return (
     <>
       <div className="fixed bottom-24 right-4 z-[85] flex flex-col gap-2 items-end">
-        <ChromeBtn labelKey="chrome.ai" onClick={() => setPanel('ai')} className="bg-violet-600 hover:bg-violet-500 text-white">
+        <ChromeBtn labelKey="chrome.ai" onClick={() => setPanel('ai')} className="btn-primary shadow-lg">
           <Sparkles className="w-4 h-4" />
         </ChromeBtn>
-        <ChromeBtn labelKey="chrome.contact" onClick={() => setPanel('contact')} className="bg-navy hover:bg-navy-light text-white">
+        <ChromeBtn labelKey="chrome.contact" onClick={() => setPanel('contact')} className="btn-contact shadow-lg">
           <Headphones className="w-4 h-4" />
         </ChromeBtn>
-        <ChromeBtn labelKey="chrome.help" onClick={() => setPanel('help')} className="bg-white text-navy border border-slate-200 hover:bg-slate-50 shadow-sm">
+        <ChromeBtn labelKey="chrome.help" onClick={() => setPanel('help')} className="btn-ghost bg-white shadow-lg">
           <CircleHelp className="w-4 h-4" />
         </ChromeBtn>
       </div>
@@ -68,7 +68,7 @@ function ChromeBtn({
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-full pl-3 pr-3.5 py-2.5 text-xs font-bold shadow-lg ${className}`}
+      className={`flex items-center gap-2 text-xs font-bold ${className}`}
     >
       {children}
       {t(labelKey)}
@@ -86,7 +86,7 @@ function ContactUsModal({ onClose }: { onClose: () => void }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-[90] backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed inset-x-0 top-16 mx-auto w-full max-w-lg bg-white rounded-2xl shadow-2xl z-[95] p-6">
+      <div className="fixed inset-x-0 top-16 mx-auto w-full max-w-lg bg-white rounded-2xl shadow-[var(--shadow-dark)] z-[95] p-6 border border-[var(--line-dark)]">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-slate-900">{t('contact.title')}</h2>
@@ -147,7 +147,7 @@ function ContactUsModal({ onClose }: { onClose: () => void }) {
             </label>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 bg-navy hover:bg-navy-light text-white text-sm font-bold px-4 py-2 rounded-lg"
+              className="btn-primary"
             >
               <Send className="w-4 h-4" />
               {t('contact.send')}
@@ -173,7 +173,7 @@ function HelpGuideModal({ onClose, role }: { onClose: () => void; role: Role }) 
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-[90] backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed inset-x-0 top-16 mx-auto w-full max-w-lg bg-white rounded-2xl shadow-2xl z-[95] p-6">
+      <div className="fixed inset-x-0 top-16 mx-auto w-full max-w-lg bg-white rounded-2xl shadow-[var(--shadow-dark)] z-[95] p-6 border border-[var(--line-dark)]">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h2 className="text-lg font-bold text-slate-900">{t('help.title')}</h2>

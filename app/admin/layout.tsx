@@ -12,7 +12,6 @@ import {
   Calendar,
   Building2,
   ArrowLeft,
-  Wrench,
   Lock,
   Tags,
   ClipboardCheck,
@@ -30,6 +29,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { UserMenu } from '@/components/common/UserMenu';
+import { CmcLogo } from '@/components/common/CmcLogo';
 import type { TranslationKey } from '@/lib/translations';
 
 const NAV_HREFS: { href: string; key: TranslationKey; icon: typeof LayoutDashboard; exact?: boolean }[] = [
@@ -80,14 +80,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-64 bg-navy flex flex-col flex-shrink-0">
         <div className="px-6 py-5 border-b border-white/10">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-brand-blue flex items-center justify-center">
-              <Wrench className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <div className="text-white font-bold text-base leading-none">TechMate</div>
-              <div className="text-white/50 text-[10px] mt-0.5 uppercase tracking-wider">{t('admin.console')}</div>
-            </div>
+            <CmcLogo href="/" inverted />
           </div>
+          <div className="text-white/50 text-[10px] mt-2 uppercase tracking-[1.5px] font-bold">{t('admin.console')}</div>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">

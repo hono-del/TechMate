@@ -21,13 +21,15 @@ export function UserMenu({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
     <div className="relative">
       <button
         onClick={() => setOpen(v => !v)}
-        className={`flex items-center gap-2 rounded-lg px-3 py-1.5 ${
-          isDark ? 'bg-blue-800 hover:bg-blue-700' : 'border border-slate-200 bg-white hover:bg-slate-50'
+        className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${
+          isDark ? 'bg-white/10 hover:bg-white/20' : 'border border-[var(--line-dark-hi)] bg-white hover:bg-[var(--surface-paper)]'
         }`}
       >
         <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-          isDark ? 'bg-blue-500 text-white' : 'bg-navy text-white'
-        }`}>
+          isDark ? 'bg-white/20 text-white' : 'text-white'
+        }`}
+        style={!isDark ? { background: 'var(--grad-cta)' } : undefined}
+        >
           {user.initials}
         </div>
         <div className="text-left hidden sm:block">

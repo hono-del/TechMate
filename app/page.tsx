@@ -8,6 +8,7 @@ import { WORKFLOW_STEPS, type Job } from '@/types';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { UserMenu } from '@/components/common/UserMenu';
+import { AppTopBar } from '@/components/common/AppTopBar';
 import { Car, AlertCircle, Clock, User, ChevronRight, LayoutDashboard, Bell, Sparkles, Search, Settings, BookOpen, Plus, Zap } from 'lucide-react';
 import { openWorkspace } from '@/components/common/WorkspaceChrome';
 import { ManualBrowserCard, ManualBrowserModal } from '@/components/knowledge/ManualBrowser';
@@ -85,99 +86,67 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      <header className="bg-navy text-white px-6 py-4 flex items-center justify-between shadow-md">
-        <div>
-          <div className="text-xs font-bold tracking-widest text-blue-200 uppercase">{t('app.name')}</div>
-          <div className="text-lg font-bold text-white">{t('app.tagline')}</div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowManuals(true)}
-            className="flex items-center gap-1.5 bg-brand-blue hover:bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm"
-          >
+      <AppTopBar kicker={t('app.name')} title={t('app.tagline')}>
+          <button type="button" onClick={() => setShowManuals(true)} className="btn-ghost">
             <BookOpen className="w-3.5 h-3.5" />
             {t('home.manuals')}
           </button>
           {canCreateJob && (
-            <Link
-              href="/job/new"
-              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-base font-bold px-5 py-2.5 rounded-xl transition-colors shadow-md"
-            >
-              <Plus className="w-5 h-5" />
+            <Link href="/job/new" className="btn-primary">
+              <Plus className="w-4 h-4" />
               {t('home.new-job')}
             </Link>
           )}
-          <Link
-            href="/tie"
-            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
-          >
+          <Link href="/tie" className="btn-ghost">
             <Zap className="w-3.5 h-3.5" />
             {t('tie.nav.list')}
           </Link>
-          <button
-            onClick={() => openWorkspace('ai')}
-            className="flex items-center gap-1.5 bg-violet-500 hover:bg-violet-400 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors shadow-sm"
-          >
+          <button type="button" onClick={() => openWorkspace('ai')} className="btn-ghost">
             <Sparkles className="w-3.5 h-3.5" />
             {t('home.ai-search')}
           </button>
-          <button
-            onClick={toggleLang}
-            className="flex items-center gap-1.5 bg-blue-800 hover:bg-blue-700 border border-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
-          >
+          <button type="button" onClick={toggleLang} className="btn-ghost">
             <span>{lang === 'en' ? '🇯🇵' : '🇺🇸'}</span>
             <span>{lang === 'en' ? '日本語' : 'English'}</span>
           </button>
           {canAccess('/admin') ? (
-            <Link
-              href="/admin"
-              className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
-            >
+            <Link href="/admin" className="btn-ghost">
               <Settings className="w-3.5 h-3.5" />
               Admin
             </Link>
           ) : canAccess('/admin/knowledge') ? (
-            <Link
-              href="/admin/knowledge"
-              className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
-            >
+            <Link href="/admin/knowledge" className="btn-ghost">
               <BookOpen className="w-3.5 h-3.5" />
               {t('admin.nav.knowledge')}
             </Link>
           ) : canAccess('/admin/tie-manufacturer') ? (
-            <Link
-              href="/admin/tie-manufacturer"
-              className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
-            >
+            <Link href="/admin/tie-manufacturer" className="btn-ghost">
               <Settings className="w-3.5 h-3.5" />
               {t('admin.nav.tie-mfr')}
             </Link>
           ) : canAccess('/admin/tie-approvals') ? (
-            <Link
-              href="/admin/tie-approvals"
-              className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors"
-            >
+            <Link href="/admin/tie-approvals" className="btn-ghost">
               <Settings className="w-3.5 h-3.5" />
               {t('admin.nav.tieq')}
             </Link>
           ) : null}
           <button
+            type="button"
             onClick={() => {
               setShowNews(true);
               setNewsSeen(true);
             }}
             title={t('news.open')}
             aria-label={t('news.open')}
-            className="relative p-2 rounded-lg hover:bg-blue-800 transition-colors"
+            className="relative p-2 rounded-full hover:bg-[var(--surface-paper)] text-slate-600"
           >
-            <Bell className="w-5 h-5 text-blue-300" />
+            <Bell className="w-5 h-5" />
             {!newsSeen && (
-              <span className="absolute top-1 right-1 w-2 h-2 bg-orange-400 rounded-full" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-warning rounded-full" />
             )}
           </button>
-          <UserMenu variant="dark" />
-        </div>
-      </header>
+          <UserMenu variant="light" />
+      </AppTopBar>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8 flex items-center justify-between">
@@ -208,7 +177,7 @@ export default function HomePage() {
 
         <button
           onClick={() => openWorkspace('ai')}
-          className="w-full mb-8 bg-white border border-violet-200 hover:border-violet-400 hover:shadow-md rounded-2xl px-5 py-4 pr-36 sm:pr-5 flex items-center gap-4 text-left transition-all group"
+          className="w-full mb-8 card-cmc px-5 py-4 pr-36 sm:pr-5 flex items-center gap-4 text-left group"
         >
           <div className="w-11 h-11 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-500 group-hover:text-white transition-colors">
             <Sparkles className="w-5 h-5" />
@@ -227,7 +196,7 @@ export default function HomePage() {
 
         {showNewQueue && (
           <section className="mb-8">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">{t('home.new-queue')}</h2>
+            <h2 className="eyebrow mb-3">{t('home.new-queue')}</h2>
             {newJobs.length === 0 ? (
               <p className="text-sm text-slate-400">{t('home.empty-new')}</p>
             ) : (
@@ -243,7 +212,7 @@ export default function HomePage() {
                         <button
                           type="button"
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); setAssignJob(job); setTechId(techs[0]?.id ?? 'u-tech'); }}
-                          className="text-xs font-bold bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg"
+                          className="btn-contact text-xs"
                         >
                           {t('home.assign')}
                         </button>
@@ -260,7 +229,7 @@ export default function HomePage() {
 
         {inProgress.length > 0 ? (
           <section className="mb-8">
-            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">{t('home.in-progress')}</h2>
+            <h2 className="eyebrow mb-3">{t('home.in-progress')}</h2>
             <div className="space-y-3">
               {inProgress.map(job => (
                 <JobCard
@@ -277,13 +246,13 @@ export default function HomePage() {
           <p className="text-sm text-slate-400 mb-8">{t('home.empty-tech')}</p>
         ) : null}
 
-        <div className="bg-violet-50 border border-violet-200 rounded-2xl p-5 flex items-start gap-4">
-          <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center flex-shrink-0">
-            <span className="text-violet-600 text-lg">✦</span>
+        <div className="card-static p-8 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 text-white" style={{ background: 'var(--grad-primary)' }}>
+            <span className="text-lg" aria-hidden>✦</span>
           </div>
           <div>
-            <div className="font-semibold text-violet-900 mb-1">{t('home.demo-mockup')}</div>
-            <p className="text-sm text-violet-700">{t('home.demo-note')}</p>
+            <div className="font-semibold text-slate-900 mb-1">{t('home.demo-mockup')}</div>
+            <p className="text-sm text-slate-600">{t('home.demo-note')}</p>
           </div>
         </div>
       </div>
@@ -315,7 +284,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={confirmAssign}
-                className="flex-1 bg-navy hover:bg-navy-light text-white text-sm font-bold py-2.5 rounded-lg"
+                className="flex-1 btn-primary"
               >
                 {t('home.assign.confirm')}
               </button>
@@ -356,7 +325,7 @@ function JobCard({
     : job.technician.name;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all">
+    <div className="card-cmc">
       <div className="p-5 flex items-center gap-5">
         <Link href={href} className="flex-1 min-w-0 flex items-center gap-5 group">
           <div className="flex-shrink-0 w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">

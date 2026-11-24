@@ -6,13 +6,13 @@ import { useLanguage } from '@/context/LanguageContext';
 export function InfoClassBadge({ cls }: { cls: InformationClass }) {
   const { t } = useLanguage();
   const config: Record<InformationClass, { key: Parameters<typeof t>[0]; className: string }> = {
-    'oem-official':    { key: 'badge.oem-official',    className: 'bg-blue-50 text-blue-700 border border-blue-200' },
-    'field-knowledge': { key: 'badge.field-knowledge', className: 'bg-amber-50 text-amber-700 border border-amber-200' },
-    'ai-generated':    { key: 'badge.ai-generated',    className: 'bg-violet-50 text-violet-700 border border-violet-200' },
+    'oem-official':    { key: 'badge.oem-official',    className: 'bg-blue-50 text-brand-navy border border-blue-200' },
+    'field-knowledge': { key: 'badge.field-knowledge', className: 'bg-amber-50 text-warning border border-amber-200' },
+    'ai-generated':    { key: 'badge.ai-generated',    className: 'bg-violet-50 text-brand-purple border border-violet-200' },
   };
   const { key, className } = config[cls];
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${className}`}>
+    <span className={`inline-flex items-center gap-1 px-[14px] py-[6px] rounded-full text-[11px] font-bold tracking-[1.5px] uppercase ${className}`}>
       {t(key)}
     </span>
   );
@@ -32,7 +32,7 @@ export function TypeBadge({ type }: { type: KnowledgeItemType }) {
   };
   const { key, className } = config[type];
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${className}`}>
+    <span className={`inline-flex items-center px-[14px] py-[6px] rounded-full text-[11px] font-bold tracking-[0.6px] uppercase ${className}`}>
       {t(key)}
     </span>
   );
@@ -61,7 +61,7 @@ export function StatusBadge({ status }: { status: string }) {
   };
   const entry = config[status] ?? { key: 'status.in-progress' as Parameters<typeof t>[0], className: 'bg-slate-100 text-slate-600' };
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${entry.className}`}>
+    <span className={`inline-flex items-center px-[14px] py-[6px] rounded-full text-[11px] font-bold tracking-[0.6px] uppercase ${entry.className}`}>
       {t(entry.key)}
     </span>
   );
