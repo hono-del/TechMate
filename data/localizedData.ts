@@ -50,7 +50,7 @@ export function getLocalizedJob(lang: Language): Job {
       ...step,
       title: jaStep.title ?? step.title,
       description: jaStep.description ?? step.description,
-      warnings: jaStep.warnings ?? step.warnings,
+      warnings: (jaStep as { warnings?: string[] }).warnings ?? step.warnings,
       specifications: (jaStep as { specifications?: string[] }).specifications ?? step.specifications,
     };
   });
