@@ -81,17 +81,19 @@ export function WorkflowStepper({ jobId }: { jobId: string }) {
           const isActive = idx === currentIndex;
           const keys = STEP_TRANSLATION_KEYS[step.id];
           const allowed = user ? canAccess(`/job/${jobId}/${step.id}`) : true;
+          const handoverLocked = step.id === 'handover' && !allowed;
 
           return (
             <button
               key={step.id}
               onClick={() => allowed && navigateTo(step.id)}
               disabled={!allowed}
+              title={handoverLocked ? t('step.handover.tech-locked') : undefined}
               className={`
                 relative flex items-center gap-2 px-5 py-3.5 text-sm font-medium transition-all
                 border-b-[3px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
                 ${!allowed
-                  ? 'border-transparent text-slate-300 cursor-not-allowed'
+                  ? 'border-transparent text-slate-300 cursor-not-allowed opacity-50'
                   : isActive
                   ? 'border-brand-blue text-brand-blue bg-blue-50'
                   : isCompleted
@@ -102,7 +104,7 @@ export function WorkflowStepper({ jobId }: { jobId: string }) {
             >
               <span className={`
                 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
-                ${isActive ? 'bg-brand-blue text-white' : isCompleted ? 'bg-verified text-white' : 'bg-slate-200 text-slate-500'}
+                ${!allowed ? 'bg-slate-100 text-slate-300' : isActive ? 'bg-brand-blue text-white' : isCompleted ? 'bg-verified text-white' : 'bg-slate-200 text-slate-500'}
               `}>
                 {isCompleted ? <Check className="w-3 h-3" /> : idx + 1}
               </span>

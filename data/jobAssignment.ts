@@ -3,6 +3,7 @@ import type { Role } from '@/data/users';
 export function jobOpenHref(jobId: string, currentStep: string, role: Role): string {
   let step = currentStep === 'work-planning' ? 'repair' : currentStep;
   if (role === 'technician' && step === 'reception') step = 'diagnosis';
+  if (role === 'technician' && step === 'handover') step = 'explanation-note';
   if (role === 'service-advisor' && ['diagnosis', 'repair', 'check-verify'].includes(step)) {
     step = 'reception';
   }

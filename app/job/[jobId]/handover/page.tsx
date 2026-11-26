@@ -696,9 +696,11 @@ export default function HandoverPage() {
         <div className="px-6 py-4 flex items-center justify-between">
           {!canComplete ? (
             <div className="text-sm text-slate-500">
-              {review.status === 'submitted' || review.status === 'reviewed'
-                ? t('handover.cta-waiting')
-                : t('handover.cta-need-note')}
+              {user?.role === 'technician-manager'
+                ? t('handover.cta-leader')
+                : review.status === 'submitted' || review.status === 'reviewed'
+                  ? t('handover.cta-waiting')
+                  : t('handover.cta-need-note')}
             </div>
           ) : phase !== 'generated' ? (
             <div className="text-sm text-slate-500">

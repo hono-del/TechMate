@@ -1,13 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   getLocalizedJob,
   adjustCauseProbabilities,
   getAnswerInsights,
-  getDiagnosticFlowSteps,
 } from '@/data/localizedData';
+import {
+  detectDiagnosisScenario,
+  getScenarioCauses,
+  getScenarioFlow,
+  isP0420Dtc,
+  type DiagnosisScenario,
+} from '@/data/diagnosisScenarios';
 import type { SimilarCaseRef, ManualRef } from '@/data/localizedData';
 import { SimilarCaseDrawer } from '@/components/knowledge/SimilarCaseDrawer';
 import { ManualDrawer } from '@/components/knowledge/ManualDrawer';
@@ -54,7 +60,24 @@ export default function DiagnosisPage() {
   const [noteObserve, setNoteObserve] = useState('');
   const [noteHypothesis, setNoteHypothesis] = useState('');
   const [noteSaved, setNoteSaved] = useState(false);
+  const [saveAttempted, setSaveAttempted] = useState(false);
+  const [activeScenario, setActiveScenario] = useState<DiagnosisScenario>(null);
   const saveNotes = () => {
+    const next = detectDiagnosisScenario({
+      dtc: noteDtc,
+      symptom: noteSymptoms,
+      findings: noteObserve,
+      result: noteHypothesis,
+    });
+    setSaveAttempted(true);
+    if (next !== activeScenario) {
+      setSelectedStep(null);
+      setExpandedCause(null);
+      setConfirmedCause(null);
+      setConfirmedCauseId(null);
+    }
+    setActiveScenario(next);
+    setDtcAcquired(next === 'p0420');
     setNoteSaved(true);
     setTimeout(() => setNoteSaved(false), 2500);
   };
@@ -70,15 +93,20 @@ export default function DiagnosisPage() {
 
   const job = getLocalizedJob(lang);
   const diagnosis = job.diagnosis!;
-  const flowSteps = useMemo(() => getDiagnosticFlowSteps(lang), [lang]);
+  const flowSteps = useMemo(() => getScenarioFlow(activeScenario, lang), [activeScenario, lang]);
 
   // Reception-based adjustments
   const hasReceptionAnswers = Object.keys(receptionAnswers).length > 0;
   const adjustedScores = adjustCauseProbabilities(receptionAnswers);
   const insights = getAnswerInsights(receptionAnswers, lang);
 
+  const scenarioCauses = useMemo(
+    () => getScenarioCauses(activeScenario, lang, diagnosis.possibleCauses),
+    [activeScenario, lang, diagnosis.possibleCauses]
+  );
+
   const getCauseProbability = (cause: PossibleCause): 'high' | 'medium' | 'low' => {
-    if (!hasReceptionAnswers) return cause.probability;
+    if (activeScenario !== 'p0420' || !hasReceptionAnswers) return cause.probability;
     if (cause.id === 'pc-001') return adjustedScores.catalyst.probability;
     if (cause.id === 'pc-002') return adjustedScores.o2sensor.probability;
     if (cause.id === 'pc-003') return adjustedScores.exhaust.probability;
@@ -86,31 +114,47 @@ export default function DiagnosisPage() {
   };
 
   const getCauseDelta = (cause: PossibleCause): number => {
-    if (!hasReceptionAnswers) return 0;
+    if (activeScenario !== 'p0420' || !hasReceptionAnswers) return 0;
     if (cause.id === 'pc-001') return adjustedScores.catalyst.delta;
     if (cause.id === 'pc-002') return adjustedScores.o2sensor.delta;
     if (cause.id === 'pc-003') return adjustedScores.exhaust.delta;
     return 0;
   };
 
-  const sortedCauses = hasReceptionAnswers
-    ? [...diagnosis.possibleCauses].sort((a, b) => {
+  const sortedCauses = activeScenario === 'p0420' && hasReceptionAnswers
+    ? [...scenarioCauses].sort((a, b) => {
         const score = (c: PossibleCause) =>
           c.id === 'pc-001' ? adjustedScores.catalyst.score
           : c.id === 'pc-002' ? adjustedScores.o2sensor.score
           : adjustedScores.exhaust.score;
         return score(b) - score(a);
       })
-    : diagnosis.possibleCauses;
+    : scenarioCauses;
+
+  const showRecommendations = activeScenario === 'p0420' || activeScenario === 'rattle';
+  const emptyHint = saveAttempted && !showRecommendations
+    ? t('diagnosis.no-match')
+    : t('diagnosis.flow.empty');
+  const emptyCausesHint = saveAttempted && !showRecommendations
+    ? t('diagnosis.no-match')
+    : t('diagnosis.causes.empty');
+
+  useEffect(() => {
+    if (!showRecommendations) {
+      setSelectedStep(null);
+      setExpandedCause(null);
+      return;
+    }
+    setSelectedStep(current =>
+      flowSteps.some(step => step.id === current) ? current : (flowSteps[0]?.id ?? null)
+    );
+  }, [showRecommendations, flowSteps]);
 
   const handleGetDTC = () => {
     setScanning(true);
     setTimeout(() => {
       setScanning(false);
-      setDtcAcquired(true);
       setNoteDtc('P0420');
-      setExpandedCause(sortedCauses[0]?.id ?? null);
-      setSelectedStep(flowSteps[0]?.id ?? null);
     }, 800);
   };
 
@@ -220,12 +264,12 @@ export default function DiagnosisPage() {
         <div className="grid grid-cols-12 gap-5 items-start">
 
           {/* ════════════════════════════════════════════════════════════════
-              LEFT col-span-3 — DTC overview + Insights + Possible Causes
+              RIGHT (order-3) col-span-3 — Possible Causes after the flow
           ════════════════════════════════════════════════════════════════ */}
-          <div className="col-span-3 space-y-4">
+          <div className="col-span-3 space-y-4 order-3">
 
             {/* DTC Overview: after Optional scan only */}
-            {dtcAcquired && (
+            {dtcAcquired && activeScenario === 'p0420' && (
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
               <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                 <AlertCircle className="w-3.5 h-3.5 text-orange-500" />
@@ -247,7 +291,7 @@ export default function DiagnosisPage() {
             )}
 
             {/* Customer Interview Insights */}
-            {insights.length > 0 && (
+            {showRecommendations && activeScenario === 'p0420' && insights.length > 0 && (
               <section className="bg-violet-50 rounded-2xl border border-violet-200 shadow-sm p-4">
                 <h2 className="text-xs font-bold text-violet-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                   <MessageSquareDot className="w-3.5 h-3.5" />
@@ -270,11 +314,15 @@ export default function DiagnosisPage() {
                 <Lightbulb className="w-3.5 h-3.5 text-violet-500" />
                 {t('diagnosis.possible-causes')}
               </h2>
+              {!showRecommendations ? (
+                <p className="text-xs text-slate-400 leading-relaxed mt-2">{emptyCausesHint}</p>
+              ) : (
+              <>
               <div className="flex flex-wrap items-center gap-1.5 mb-3">
                 <span className="text-xs bg-violet-50 text-violet-600 px-2 py-0.5 rounded-full border border-violet-200">
                   ✦ {t('badge.ai-generated')}
                 </span>
-                {hasReceptionAnswers && (
+                {activeScenario === 'p0420' && hasReceptionAnswers && (
                   <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full border border-blue-200">
                     {lang === 'ja' ? '受付で調整' : 'Adjusted'}
                   </span>
@@ -367,10 +415,13 @@ export default function DiagnosisPage() {
 
               <p className="mt-2 text-xs text-violet-500 flex items-start gap-1">
                 <span className="flex-shrink-0">✦</span>
-                {t('diagnosis.ai-ranking-note')}
+                {t(activeScenario === 'rattle' ? 'diagnosis.ai-ranking-note.rattle' : 'diagnosis.ai-ranking-note')}
               </p>
+              </>
+              )}
             </section>
 
+            {showRecommendations && (
             <section className="bg-white rounded-2xl border border-violet-200 shadow-sm p-4">
               <h2 className="text-xs font-bold text-violet-700 uppercase tracking-wide mb-1 flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5" />
@@ -397,12 +448,13 @@ export default function DiagnosisPage() {
                 </button>
               </div>
             </section>
+            )}
           </div>
 
           {/* ════════════════════════════════════════════════════════════════
-              CENTER col-span-4 — Recommended Diagnostic Flow (interactive)
+              LEFT (order-1) col-span-4 — Recommended Diagnostic Flow first
           ════════════════════════════════════════════════════════════════ */}
-          <div className="col-span-4">
+          <div className="col-span-4 order-1">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sticky top-4">
               {/* Header */}
               <div className="flex items-center justify-between mb-5">
@@ -410,11 +462,17 @@ export default function DiagnosisPage() {
                   <ListChecks className="w-5 h-5 text-blue-500" />
                   {t('diagnosis.flow-title')}
                 </h2>
+                {showRecommendations && (
                 <span className="text-xs bg-violet-50 text-violet-600 border border-violet-200 px-2 py-0.5 rounded-full font-medium">
                   ✦ {t('badge.ai-generated')}
                 </span>
+                )}
               </div>
 
+              {!showRecommendations ? (
+                <p className="text-sm text-slate-400 leading-relaxed">{emptyHint}</p>
+              ) : (
+              <>
               {/* Step list */}
               <ol className="space-y-0.5">
                 {flowSteps.map((step, i) => (
@@ -465,15 +523,25 @@ export default function DiagnosisPage() {
                   {t('diagnosis.flow.select-hint')}
                 </p>
               )}
+              </>
+              )}
             </div>
           </div>
 
           {/* ════════════════════════════════════════════════════════════════
-              RIGHT col-span-5 — Step Detail Panel
+              CENTER (order-2) col-span-5 — Step Detail Panel
           ════════════════════════════════════════════════════════════════ */}
-          <div className="col-span-5 space-y-4">
+          <div className="col-span-5 space-y-4 order-2">
 
-            {!activeStep ? (
+            {!showRecommendations ? (
+              <div className="h-72 flex flex-col items-center justify-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-center p-8">
+                <ListChecks className="w-12 h-12 text-slate-300 mb-3" />
+                <p className="font-semibold text-slate-500 mb-1">{t('diagnosis.flow-title')}</p>
+                <p className="text-xs text-slate-400 leading-relaxed max-w-xs">
+                  {emptyHint}
+                </p>
+              </div>
+            ) : !activeStep ? (
               /* Placeholder */
               <div className="h-72 flex flex-col items-center justify-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-center p-8">
                 <ListChecks className="w-12 h-12 text-slate-300 mb-3" />

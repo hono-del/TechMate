@@ -22,6 +22,7 @@ import {
   readAssignments,
   type JobAssignment,
 } from '@/data/jobAssignment';
+import { readReviews, type JobReview } from '@/data/jobReview';
 
 const STEP_KEYS: Record<string, TranslationKey> = {
   reception:      'step.reception',
@@ -41,6 +42,7 @@ export default function HomePage() {
   const [showNews, setShowNews] = useState(false);
   const [newsSeen, setNewsSeen] = useState(false);
   const [assignments, setAssignments] = useState<Record<string, JobAssignment>>({});
+  const [reviews, setReviews] = useState<Record<string, JobReview>>({});
   const [assignJob, setAssignJob] = useState<Job | null>(null);
   const [techId, setTechId] = useState(getTechnicians()[0]?.id ?? 'u-tech');
   const ALL_JOBS = getLocalizedAllJobs(lang);
@@ -55,23 +57,42 @@ export default function HomePage() {
 
   useEffect(() => {
     setAssignments(readAssignments());
+    const loadReviews = () => setReviews(readReviews());
+    loadReviews();
+    window.addEventListener('techmate-reviews-changed', loadReviews);
+    window.addEventListener('focus', loadReviews);
+    return () => {
+      window.removeEventListener('techmate-reviews-changed', loadReviews);
+      window.removeEventListener('focus', loadReviews);
+    };
   }, []);
 
   const canAssign = role ? canAssignJobs(role) : false;
   const canCreateJob = role === 'service-advisor' || canAssign;
 
-  const { newJobs, inProgress, scheduled } = useMemo(() => {
+  const { newJobs, inProgress, scheduled, pendingHandover } = useMemo(() => {
     const newJobs = ALL_JOBS.filter(j => isUnassigned(j.id));
     let visible = ALL_JOBS.filter(j => !isUnassigned(j.id));
     if (role === 'technician' && user) {
       visible = visible.filter(j => assignments[j.id]?.technicianId === user.id);
     }
+    const submittedIds = new Set(
+      Object.entries(reviews)
+        .filter(([, r]) => r.status === 'submitted' || r.status === 'reviewed')
+        .map(([id]) => id)
+    );
+    const pendingHandover =
+      role === 'technician-manager'
+        ? visible.filter(j => submittedIds.has(j.id) && j.status === 'in-progress')
+        : [];
+    const pendingIds = new Set(pendingHandover.map(j => j.id));
     return {
       newJobs,
-      inProgress: visible.filter(j => j.status === 'in-progress'),
+      pendingHandover,
+      inProgress: visible.filter(j => j.status === 'in-progress' && !pendingIds.has(j.id)),
       scheduled: visible.filter(j => j.status === 'scheduled'),
     };
-  }, [ALL_JOBS, assignments, role, user]);
+  }, [ALL_JOBS, assignments, role, user, reviews]);
 
   const showNewQueue = role !== 'technician' && role !== 'manufacturer-approver';
 
@@ -158,6 +179,12 @@ export default function HomePage() {
             <h1 className="text-2xl font-bold text-slate-900">{today}</h1>
           </div>
           <div className="flex gap-3">
+            {role === 'technician-manager' && (
+              <div className="bg-violet-50 border-2 border-violet-400 rounded-xl px-4 py-3 text-center">
+                <div className="text-2xl font-bold text-violet-800">{pendingHandover.length}</div>
+                <div className="text-xs text-violet-700 font-bold">{t('home.pending-handover')}</div>
+              </div>
+            )}
             {showNewQueue && (
               <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-center">
                 <div className="text-2xl font-bold text-orange-700">{newJobs.length}</div>
@@ -193,6 +220,23 @@ export default function HomePage() {
         </button>
 
         <ManualBrowserCard />
+
+        {pendingHandover.length > 0 && (
+          <section className="mb-8">
+            <h2 className="eyebrow mb-3 text-violet-800">{t('home.pending-handover')}</h2>
+            <div className="space-y-3">
+              {pendingHandover.map(job => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  featured
+                  href={`/job/${job.id}/handover`}
+                  assignee={assignments[job.id]}
+                />
+              ))}
+            </div>
+          </section>
+        )}
 
         {showNewQueue && (
           <section className="mb-8">
@@ -312,12 +356,14 @@ function JobCard({
   hideDtc,
   extra,
   assignee,
+  featured,
 }: {
   job: Job;
   href: string;
   hideDtc?: boolean;
   extra?: React.ReactNode;
   assignee?: JobAssignment;
+  featured?: boolean;
 }) {
   const { t, lang } = useLanguage();
   const techName = assignee?.technicianName
@@ -325,7 +371,7 @@ function JobCard({
     : job.technician.name;
 
   return (
-    <div className="card-cmc">
+    <div className={`card-cmc ${featured ? 'ring-2 ring-violet-500 border-violet-300 bg-violet-50/70' : ''}`}>
       <div className="p-5 flex items-center gap-5">
         <Link href={href} className="flex-1 min-w-0 flex items-center gap-5 group">
           <div className="flex-shrink-0 w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
@@ -337,6 +383,11 @@ function JobCard({
                 {job.vehicle.year} {job.vehicle.model}
               </span>
               <StatusBadge status={job.status} />
+              {featured && (
+                <span className="bg-violet-600 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded">
+                  {t('home.pending-handover.badge')}
+                </span>
+              )}
               {!hideDtc && job.dtcs.length > 0 && (
                 <div className="flex gap-1">
                   {job.dtcs.map(d => (
@@ -358,7 +409,7 @@ function JobCard({
           <div className="flex-shrink-0 text-right">
             <div className="text-xs text-slate-400 mb-1">{t('home.current-step')}</div>
             <div className="bg-blue-100 text-blue-700 font-semibold text-sm px-3 py-1 rounded-lg">
-              {t(STEP_KEYS[job.currentStep] ?? 'step.reception')}
+              {t(featured ? 'step.handover' : (STEP_KEYS[job.currentStep] ?? 'step.reception'))}
             </div>
             <div className="text-xs text-slate-400 mt-1">{job.vehicle.mileage.toLocaleString()} km</div>
           </div>
@@ -369,7 +420,9 @@ function JobCard({
       <div className="px-5 pb-4">
         <div className="flex gap-0.5">
           {WORKFLOW_STEPS.map((step, idx) => {
-            const mapped = job.currentStep === 'work-planning' ? 'repair' : job.currentStep;
+            const mapped = featured
+              ? 'handover'
+              : job.currentStep === 'work-planning' ? 'repair' : job.currentStep;
             const stepIndex = WORKFLOW_STEPS.findIndex(s => s.id === mapped);
             const isCompleted = idx < stepIndex;
             const isActive = idx === stepIndex;

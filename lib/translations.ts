@@ -21,6 +21,10 @@ const translations = {
   'step.note': { en: 'Note', ja: 'ノート' },
   'step.verify':       { en: 'Verify',          ja: '検証' },
   'step.handover':     { en: 'Handover',        ja: '引渡し' },
+  'step.handover.tech-locked': {
+    en: 'Customer handover is done by SA / Admin — not the technician.',
+    ja: '顧客への引渡しは SA / 管理者が行います。整備士の操作ではありません。',
+  },
 
   // ─── Header ─────────────────────────────────────────────────────────────────
   'header.more':       { en: 'More',               ja: '詳細' },
@@ -52,6 +56,14 @@ const translations = {
   'home.assign.done':  { en: 'Assigned', ja: '割り当て済み' },
   'home.empty-tech':   { en: 'No jobs assigned to you.', ja: 'あなたに割り当てられた案件はありません。' },
   'home.empty-new':    { en: 'No unassigned jobs.', ja: '未割り当ての案件はありません。' },
+  'home.pending-handover': {
+    en: 'Pending Handover',
+    ja: '引渡し待ち',
+  },
+  'home.pending-handover.badge': {
+    en: 'Pending Handover',
+    ja: '引渡し待ち',
+  },
   'home.current-step': { en: 'Current Step',    ja: '現在工程' },
   'home.demo-mockup':  { en: 'Demo Mockup',     ja: 'デモ用モックアップ' },
   'home.demo-note': {
@@ -240,9 +252,25 @@ const translations = {
     en: 'AI-assisted ranking based on DTC + vehicle + field cases. Verify with official diagnostic procedure.',
     ja: 'DTC・車両・現場事例に基づくAI支援ランキングです。公式診断手順で必ず確認してください。',
   },
+  'diagnosis.ai-ranking-note.rattle': {
+    en: 'AI-assisted ranking based on the failure symptom and similar no-DTC cases. Confirm on the cards after the flow.',
+    ja: '不具合症状と、DTCなしの類似事例に基づくAI支援ランキングです。フローのあとカードで確定してください。',
+  },
   'diagnosis.flow-title':       { en: 'Recommended Diagnostic Flow', ja: '推奨診断フロー' },
   'diagnosis.flow.select-step': { en: 'Select a step to view details', ja: 'ステップを選択して詳細を表示' },
   'diagnosis.flow.select-hint': { en: 'Click any step to see what to check, relevant manuals, and similar cases.', ja: '各ステップをクリックすると確認項目・関連マニュアル・類似事例が表示されます。' },
+  'diagnosis.flow.empty': {
+    en: 'Enter P0420 in DTC, or a failure symptom such as rattling over bumps, then press Save input. Recommendations appear only after Save.',
+    ja: 'DTC に P0420 を入れるか、段差でのガタ音などの不具合症状を入れてから Save input を押してください。候補は保存後にだけ出ます。',
+  },
+  'diagnosis.causes.empty': {
+    en: 'Possible causes stay blank until you press Save input. Demo: P0420, or rattling noise over bumps with no DTC.',
+    ja: 'Save input を押すまで推定原因は空です。デモ: P0420、または DTC なしの段差ガタ音。',
+  },
+  'diagnosis.no-match': {
+    en: 'No matching recommendations for this mock. Save DTC P0420, or a rattling-over-bumps failure symptom with no DTC.',
+    ja: 'このモックで照合できる内容がありません。DTC に P0420 を保存するか、DTC なしの段差ガタ音の症状を保存してください。',
+  },
   'diagnosis.flow.what-check':  { en: 'What to Check', ja: '確認項目' },
   'diagnosis.flow.manual':      { en: 'Relevant Manual', ja: '関連マニュアル' },
   'diagnosis.flow.cases':       { en: 'Similar Cases', ja: '類似事例' },
@@ -427,7 +455,7 @@ const translations = {
   'verify.cta-pending':     { en: 'required item(s) still pending', ja: '必須項目がまだ保留中です' },
   'verify.cta':             { en: 'Create Work / Explanation Note', ja: '作業・説明ノートを作成' },
   'verify.concerns.title':  { en: 'Customer concerns / requests', ja: '顧客の訴え／依頼' },
-  'verify.concerns.sub':    { en: 'Separate from technical checks. Confirm each reception item is resolved, or record the decided action in writing.', ja: '技術確認とは別です。受付の各項目が解消したか確認します。対応方針ありの場合は、決めた内容を必ず記入してください。' },
+  'verify.concerns.sub':    { en: 'Final confirmation after the technical checks. Confirm each reception item is resolved, or record the decided action in writing.', ja: '技術確認のあとで行う最終確認です。受付の各項目が解消したか確認します。対応方針ありの場合は、決めた内容を必ず記入してください。' },
   'verify.concerns.resolved': { en: 'Resolved', ja: '解消' },
   'verify.concerns.action': { en: 'Action decided', ja: '対応方針あり' },
   'verify.concerns.pending':{ en: 'Pending', ja: '未確認' },
@@ -448,8 +476,8 @@ const translations = {
   // ─── Work / Explanation Note ────────────────────────────────────────────────
   'note.banner.title': { en: 'Work / Explanation Note', ja: '作業・説明ノート' },
   'note.banner.body': {
-    en: 'Generate an AI draft, review and edit it, then submit for SA / Admin review. Submitting is not customer handover.',
-    ja: 'AI下書きを生成し、確認・編集したうえで SA / 管理者へレビュー依頼します。提出は顧客引渡しではありません。',
+    en: 'Generate an AI draft, review and edit it, then submit to the Technician Leader. Submitting is not customer handover.',
+    ja: 'AI下書きを生成し、確認・編集したうえで Technician Leader へレビュー依頼します。提出は顧客引渡しではありません。',
   },
   'note.generate.btn': { en: 'Generate AI draft', ja: 'AI下書きを生成' },
   'note.generate.loading': { en: 'Drafting the work note…', ja: '作業ノートを作成しています…' },
@@ -459,16 +487,16 @@ const translations = {
     ja: 'SAが顧客説明前に知っておくべきこと…',
   },
   'note.submit': { en: 'Submit for Review', ja: 'レビュー依頼' },
-  'note.submit.hint': { en: 'Placeholder — demo only. SA / Admin review the note on Handover.', ja: 'デモ用の仮置きです。SA / 管理者は引渡し画面でレビューします。' },
+  'note.submit.hint': { en: 'Placeholder — demo only. Routes to the Technician Leader as a pending Handover task.', ja: 'デモ用の仮置きです。Technician Leader の引渡し待ちタスクへ回付します。' },
   'note.submitted.title': { en: 'Submitted for review', ja: 'レビュー依頼済み' },
   'note.submitted.body': {
-    en: 'Waiting for SA / Admin. Completing this note does not hand the vehicle back to the customer.',
-    ja: 'SA / 管理者の確認待ちです。ノート提出は顧客への車両返却ではありません。',
+    en: 'Routed to the Technician Leader as a pending Handover task. Completing this note does not hand the vehicle back to the customer.',
+    ja: 'Technician Leader の引渡し待ちタスクへ回付しました。ノート提出は顧客への車両返却ではありません。',
   },
   'note.go-home': { en: 'Return to Job List', ja: 'ジョブ一覧に戻る' },
   'note.sa-hint': {
-    en: 'SA / Admin review and complete the job on Handover.',
-    ja: 'SA / 管理者は引渡し画面でレビューし、ジョブを完了します。',
+    en: 'Technician Leader reviews the note here. SA / Admin complete customer handover.',
+    ja: 'Technician Leader はここでノートを確認します。顧客引渡しの完了は SA / 管理者です。',
   },
   'note.go-handover': { en: 'Go to Handover', ja: '引渡しへ' },
   'note.edit-after': { en: 'You can still edit until SA completes handover.', ja: 'SAが引渡しを完了するまで編集できます。' },
@@ -523,6 +551,10 @@ const translations = {
   'handover.cta':            { en: 'Complete Job',            ja: 'ジョブ完了' },
   'handover.cta-blocked':    { en: 'Technician work is complete. Customer handover is done by SA / Admin.', ja: '整備士の作業は完了しています。顧客への引渡しは SA / 管理者が行います。' },
   'handover.cta-waiting':    { en: 'Waiting for SA / Admin to complete customer handover', ja: 'SA / 管理者の顧客引渡し完了を待っています' },
+  'handover.cta-leader': {
+    en: 'Review the explanation note. Customer handover (Complete Job) is done by SA / Admin.',
+    ja: '説明ノートを確認してください。顧客引渡し（ジョブ完了）は SA / 管理者が行います。',
+  },
   'handover.cta-need-note':  { en: 'Create and submit the work note first', ja: '先に作業ノートを作成してレビュー依頼してください' },
   'handover.review.title':   { en: 'Review', ja: 'レビュー' },
   'handover.review.status.draft': { en: 'Draft — not submitted', ja: '下書き — 未提出' },

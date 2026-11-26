@@ -14,11 +14,18 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { t } = useLanguage();
   const isLogin = pathname === '/login';
 
+  const techHandover = !!(
+    user?.role === 'technician' && pathname.match(/\/job\/[^/]+\/handover/)
+  );
+
   useEffect(() => {
     if (!ready) return;
     if (!user && !isLogin) router.replace('/login');
     if (user && isLogin) router.replace('/');
-  }, [ready, user, isLogin, router]);
+    if (techHandover) {
+      router.replace(pathname.replace(/handover$/, 'explanation-note'));
+    }
+  }, [ready, user, isLogin, router, techHandover, pathname]);
 
   if (!ready) {
     return (
@@ -31,6 +38,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   if (isLogin) return <>{children}</>;
 
   if (!user) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="text-slate-500 text-sm">{t('auth.redirect')}</div>
+      </div>
+    );
+  }
+
+  if (techHandover) {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center">
         <div className="text-slate-500 text-sm">{t('auth.redirect')}</div>

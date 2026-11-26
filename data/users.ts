@@ -132,12 +132,16 @@ export function canAssignJobs(role: Role): boolean {
   return role === 'dealer-admin' || role === 'technician-manager' || role === 'system-admin';
 }
 
-/** SA / Admin complete customer handover. Technician work complete is a different step. */
+/** Floor technician cannot open Handover. Technician Leader / SA / Admin can. */
+export function canOpenHandover(role: Role): boolean {
+  return role !== 'technician' && role !== 'manufacturer-approver';
+}
+
+/** SA / Admin complete customer handover. Technician Leader reviews the note only. */
 export function canCompleteCustomerHandover(role: Role): boolean {
   return (
     role === 'service-advisor' ||
     role === 'dealer-admin' ||
-    role === 'technician-manager' ||
     role === 'system-admin'
   );
 }
@@ -155,6 +159,7 @@ export function canAccessPath(role: Role, pathname: string): boolean {
 
   if (role === 'technician') {
     if (pathname.match(/\/job\/[^/]+\/reception/)) return false;
+    if (pathname.match(/\/job\/[^/]+\/handover/)) return false;
     if (pathname.startsWith('/admin/knowledge')) return true;
     if (pathname.startsWith('/admin')) return false;
     return true;

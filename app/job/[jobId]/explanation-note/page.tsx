@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getLocalizedExplanationNote, getLocalizedJob } from '@/data/localizedData';
 import { getReview, writeReview } from '@/data/jobReview';
-import { canCompleteCustomerHandover } from '@/data/users';
+import { canOpenHandover } from '@/data/users';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -38,7 +38,7 @@ export default function ExplanationNotePage() {
   const { t, lang } = useLanguage();
   const { user } = useAuth();
   const job = getLocalizedJob(lang);
-  const isReviewer = user ? canCompleteCustomerHandover(user.role) : false;
+  const isReviewer = user ? canOpenHandover(user.role) : false;
 
   const [note, setNote] = useState(() => getLocalizedExplanationNote(lang));
   const [techComment, setTechComment] = useState('');

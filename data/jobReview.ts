@@ -38,4 +38,5 @@ export function writeReview(jobId: string, next: JobReview) {
   const map = readReviews();
   map[jobId] = next;
   window.localStorage.setItem(KEY, JSON.stringify(map));
+  window.dispatchEvent(new Event('techmate-reviews-changed'));
 }
